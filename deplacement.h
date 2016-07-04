@@ -11,9 +11,9 @@ public:
     virtual float get_distance() = 0;
     virtual void set_info_abs(float _X, float _Y) = 0;
     virtual void set_info_rel(float _X, float _Y) = 0;
-
     virtual QString gcode_ligne() = 0;
-
+//Tes
+    int gg;
 protected:
     float X_abs = 0;
     float Y_abs = 0;
