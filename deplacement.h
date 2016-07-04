@@ -13,7 +13,6 @@ public:
     virtual void set_info_rel(float _X, float _Y) = 0;
     virtual QString gcode_ligne() = 0;
 
-    int gg;
 protected:
     float X_abs = 0;
     float Y_abs = 0;
