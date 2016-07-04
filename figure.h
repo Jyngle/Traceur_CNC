@@ -14,7 +14,7 @@ public:
 private:
     float taille_figure;
 
-};
+};//test
 
 
 
