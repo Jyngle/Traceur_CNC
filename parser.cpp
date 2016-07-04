@@ -119,6 +119,12 @@ QList<Ligne *> Parser::parse_gcode(QString name)
                   liste.append(OutPut);
               }
 
+              if (ligne.contains("PAUSE")){
+                  QStringList Param = ligne.split(" ");
+                  pause *Pause = new pause(Param[1]);
+                  liste.append(Pause);
+              }
+
            }
     fichier_gcode.close();
     return liste;
@@ -146,7 +152,7 @@ void Parser::write_liste(QList<Ligne *> liste, QString name_out){
 }
 
 
-void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float distance_min, float distance_max){
+void Parser::insert_macro_distance(QList<Ligne *> liste_abs, QList<Ligne *> macro, float distance_min, float distance_max){
 
     float total_distance = 0.,check_dist = 0.;
     QList<Ligne *> liste_sortie;
@@ -286,7 +292,7 @@ void Parser::clean_file(QString name){
 
 }
 
-void Parser::correspondance(QList<Ligne *> liste_abs, QString name){
+void Parser::AjoutMacros(QList<Ligne *> liste_abs, QString name){
 
     QString filename_corres = QCoreApplication::applicationDirPath() + "/" + name;
     QFile fichier_corres(filename_corres);
@@ -300,7 +306,7 @@ void Parser::correspondance(QList<Ligne *> liste_abs, QString name){
 
         if(ligne.contains("Distance")){
             QStringList liste = ligne.split(" ");
-            insert_macro(liste_abs,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
+            insert_macro_distance(liste_abs,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
 
         }
 

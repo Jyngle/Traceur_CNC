@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     Parser::absolute_relative(liste_gcode);
 
-    Parser::correspondance(liste_gcode,"correspondance.txt");
+    Parser::AjoutMacros(liste_gcode,"correspondance.txt");
 
     return 0;
 }
