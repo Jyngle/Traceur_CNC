@@ -113,6 +113,12 @@ QList<Ligne *> Parser::parse_gcode(QString name)
                 liste.append(figure);
               }
 
+              if (ligne.contains("OUTPUT")){
+                  QStringList Param = ligne.split(" ");
+                  output *OutPut = new output(Param[1], Param[2]);
+                  liste.append(OutPut);
+              }
+
            }
     fichier_gcode.close();
     return liste;

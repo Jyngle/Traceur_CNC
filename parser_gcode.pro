@@ -14,7 +14,8 @@ SOURCES += main.cpp \
     g00.cpp \
     g01.cpp \
     g02.cpp \
-    figure.cpp
+    figure.cpp \
+    output.cpp
 
 HEADERS += \
     parser.h \
@@ -23,4 +24,5 @@ HEADERS += \
     g01.h \
     g02.h \
     ligne.h \
-    figure.h
+    figure.h \
+    output.h
