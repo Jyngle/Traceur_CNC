@@ -23,6 +23,7 @@ public:
     static void compute_taille_figure(QList<Ligne *> liste_gcode);
     static void clean_file(QString name);
     static void AjoutMacros(QList<Ligne *> liste_abs, QString name);
+    static int GetValue(QString ligne, QString Key, QString &Value);
 
 };
 
