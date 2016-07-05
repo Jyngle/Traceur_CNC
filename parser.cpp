@@ -8,6 +8,31 @@
 #include <QDebug>
 #include <QCoreApplication>
 
+
+int Parser::GetValue(QString ligne, QString Key, QString &Value)
+{
+    QStringList Param = ligne.split(" ");
+
+    if(!ligne.contains(Key)) {return 0;}
+    int j=0;
+
+    for(int i=0; i<Param.size(); i++)
+    {
+        if(Param[i] == Key)// Si la clef est trouvée
+        {
+            for(j=0; i + 1 + j <= Param.size() && Param[i+1+j] == ""; j++);//supression des espaces après la clef
+
+            if(i+1+j > Param.size()+1) //Pas de valeur trouvées
+                return 0;
+            else
+                Value = Param[i+1+j];//Récupération de la valeur
+
+            return 1; //test
+        }
+    }
+return 0;
+}
+
 QList<Ligne *> Parser::parse_gcode(QString name)
 {
 
@@ -15,119 +40,107 @@ QList<Ligne *> Parser::parse_gcode(QString name)
     QFile fichier_gcode(filename);
     QTextStream fichier_in(&fichier_gcode);
 
-    if(fichier_gcode.open(QIODevice::ReadOnly |QIODevice::Text)){
+    if(fichier_gcode.open(QIODevice::ReadOnly |QIODevice::Text))
+        qDebug() << "Fichier Gcode ouvert !" << endl;
+    else
+        qDebug() << "Probleme a la lecture du fichier" << endl;
 
-    qDebug() << "Fichier Gcode ouvert !" << endl;
-    }
-    else {qDebug() << "Probleme a la lecture du fichier";}
+    int F = 0;//Vitesse par default
+    float X = 0, Y = 0, Z = 0;
+    QString valTMP;
 
-    int F = 0;
-    QList<Ligne*> liste;
+    QList<Ligne*> liste_objet_parse;
+
     while (!fichier_in.atEnd())
            {
               QString ligne = fichier_in.readLine();
 
-              if (ligne.contains("G0")){
-                  int indiceX = ligne.indexOf("X");
-                  int indiceY = ligne.indexOf("Y");
-                  int indiceZ = ligne.indexOf("Z");
-                  float X = 0;float Y = 0;float Z = 0;
+              if (ligne.contains("G0") || ligne.contains("G1")){    //*********************************************************************
 
-                  if (indiceX != -1){
-                    X = ligne.mid(indiceX+1,8).simplified().toFloat();
-                    //qDebug() << "X = " << ligne.mid(indiceX+1,8).simplified();
-                    }
-                  if (indiceY != -1){
-                    Y = ligne.mid(indiceY+1,8).simplified().toFloat();
-                    //qDebug() << "Y = "<< ligne.mid(indiceY+1,8).simplified();
-                    }
-                  if (indiceZ != -1){
-                    Z = ligne.mid(indiceZ+1,8).simplified().toFloat();
-                    //qDebug() << "Z = "<< ligne.mid(indiceZ+1,8).simplified();
-                    }
-                  //qDebug() << QString::number(X) << QString::number(Y) << QString::number(Z) << endl;
-                  G00 * g00 = new G00(X,Y,Z,F);
-                  liste.append(g00);
+                  if(GetValue(ligne,"X",valTMP))
+                      X = valTMP.toFloat();
+
+                  if(GetValue(ligne,"Y",valTMP))
+                      Y = valTMP.toFloat();
+
+                  if(GetValue(ligne,"Z",valTMP))
+                      Z = valTMP.toFloat();
+
+                  //qDebug() << "test" << "X : " << X << " Y : " << Y << " Z : " << Z << endl;
+                  if (ligne.contains("G0"))
+                  {
+                      G00 * g00 = new G00(X,Y,Z,F);
+                      liste_objet_parse.append(g00);
+                  }
+                  else
+                  {
+                      G01 * g01 = new G01(X,Y,Z,F);
+                      liste_objet_parse.append(g01);
+                  }
+
               }
 
-
-              if (ligne.contains("G1")){
-                  int indiceX = ligne.indexOf("X");
-                  int indiceY = ligne.indexOf("Y");
-                  int indiceZ = ligne.indexOf("Z");
-                  float X = 0;float Y = 0;float Z = 0;
-
-                  if (indiceX != -1){
-                    X = ligne.mid(indiceX+1,8).simplified().toFloat();
-                    //qDebug() << "X = " << ligne.mid(indiceX+1,8).simplified();
-                    }
-                  if (indiceY != -1){
-                    Y = ligne.mid(indiceY+1,8).simplified().toFloat();
-                    //qDebug() << "Y = "<< ligne.mid(indiceY+1,8).simplified();
-                    }
-                  if (indiceZ != -1){
-                    Z = ligne.mid(indiceZ+1,8).simplified().toFloat();
-                    //qDebug() << "Z = "<< ligne.mid(indiceZ+1,8).simplified();
-                    }
-                  //qDebug() << QString::number(X) << QString::number(Y) << QString::number(Z) << endl;
-                  G01 * g01 = new G01(X,Y,Z,F);
-                  liste.append(g01);
+              if (ligne.contains("F")){//*********************************************************************
+                    F = ligne.mid(ligne.indexOf("F")+1).simplified().toInt();
               }
 
+              if (ligne.contains("G2")){    //*********************************************************************
 
-              if (ligne.contains("F")){
-
-                  F = ligne.mid(1,5).simplified().toFloat();
-              }
-
-              if (ligne.contains("G2")){
-                  int indiceX = ligne.indexOf("X");
-                  int indiceY = ligne.indexOf("Y");
-                  int indiceI = ligne.indexOf("I");
-                  int indiceJ = ligne.indexOf("J");
                   float X = 0;float Y = 0;float I = 0;float J = 0;
 
-                  if (indiceX != -1){
-                    X = ligne.mid(indiceX+1,8).simplified().toFloat();
-                    //qDebug() << "X = " << ligne.mid(indiceX+1,8).simplified();
-                    }
-                  if (indiceY != -1){
-                    Y = ligne.mid(indiceY+1,8).simplified().toFloat();
-                    //qDebug() << "Y = "<< ligne.mid(indiceY+1,8).simplified();
-                    }
-                  if (indiceI != -1){
-                    I = ligne.mid(indiceI+1,8).simplified().toFloat();
-                    //qDebug() << "I = "<< ligne.mid(indiceI+1,8).simplified();
-                    }
-                  if (indiceJ != -1){
-                    J = ligne.mid(indiceJ+1,8).simplified().toFloat();
-                    //qDebug() << "J = "<< ligne.mid(indiceJ+1,8).simplified();
-                    }
-                  //qDebug() << QString::number(X) << QString::number(Y) << QString::numberI) << QString::numberJ) << endl;
+                  if(GetValue(ligne,"X",valTMP))
+                      X = valTMP.toFloat();
+
+                  if(GetValue(ligne,"Y",valTMP))
+                      Y = valTMP.toFloat();
+
+                  if(GetValue(ligne,"I",valTMP))
+                      I = valTMP.toFloat();
+
+                  if(GetValue(ligne,"J",valTMP))
+                      J = valTMP.toFloat();
+
+                  //qDebug() << "X : " << X << " Y : " << Y << " I : " << I << " J : " << J << endl;
                   G02 * g02 = new G02(X,Y,I,J,F);
-                  liste.append(g02);
+                  liste_objet_parse.append(g02);
               }
 
-              if (ligne.contains("SHAPE")){
+              if (ligne.contains("SHAPE")){ //*********************************************************************
                 Figure * figure = new Figure();
-                liste.append(figure);
+                liste_objet_parse.append(figure);
               }
 
+              if (ligne.contains("OUTPUT")){//*********************************************************************
+                  QStringList Param = ligne.split(" ");
+                  output *OutPut = new output(Param[1], Param[2]);
+                  liste_objet_parse.append(OutPut);
+              }
+
+              if (ligne.contains("PAUSE") && GetValue(ligne,"PAUSE",valTMP)){ //*********************************************************************
+                  pause *Pause = new pause(valTMP);
+                  liste_objet_parse.append(Pause);
+              }
+
+              if (ligne.contains("INPUT")){ //*********************************************************************
+                  QStringList Param = ligne.split(" ");
+                  input *InPut = new input(Param[1], Param[2]);
+                  liste_objet_parse.append(InPut);
+              }
            }
     fichier_gcode.close();
-    return liste;
+    return liste_objet_parse;
 
 }
 
 QString Parser::type_check(Ligne *elt){
-
     if (dynamic_cast<Deplacement *>(elt)){return "Deplacement";}
     if (dynamic_cast<Figure *>(elt)){return "Figure";}
-   else return "inconnu";
+        else return "inconnu";
 }
 
 
 void Parser::write_liste(QList<Ligne *> liste, QString name_out){
+
      QString filename_out = QCoreApplication::applicationDirPath() + "/" + name_out;
      QFile out(filename_out);
      QTextStream stream_out(&out);
@@ -140,41 +153,51 @@ void Parser::write_liste(QList<Ligne *> liste, QString name_out){
 }
 
 
-void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float distance_min, float distance_max){
+void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
 
     float total_distance = 0.,check_dist = 0.;
     QList<Ligne *> liste_sortie;
     int indice;
+
     int i;
 
-    for (i = 0;i < liste_abs.size();i++){
 
-            liste_sortie.append(liste_abs[i]);
-            if (Parser::type_check(liste_abs[i]) == "Deplacement"){
+    for (i = 0;i < liste_entre.size();i++){
+
+
+            liste_sortie.append(liste_entre[i]);
+
+            if (Parser::type_check(liste_entre[i]) == "Deplacement"){
                 //qDebug() << QString::number(total_distance);
-                total_distance += dynamic_cast<Deplacement *>(liste_abs[i])->get_distance();
-                check_dist += dynamic_cast<Deplacement *>(liste_abs[i])->get_distance();
+                total_distance += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
+                check_dist += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
             }
 
-            if (Parser::type_check(liste_abs[i]) == "Figure"){indice = i;}
+            if (Parser::type_check(liste_entre[i]) == "Figure"){
+                indice = i;
+            }
 
             if(total_distance > distance_min){
 
-                if ( dynamic_cast<Figure *>(liste_abs[indice])->get_taille() > distance_max ){
+
+                if ( dynamic_cast<Figure *>(liste_entre[indice])->get_taille() > distance_max ){
 
                     //RECUPERATION DES VALEURS PRECEDENTES
                     int k = i-1;
                     int checkZ =0;
                     while(checkZ == 0){
-                        if (Parser::type_check(liste_abs[k]) == "Deplacement"){
-                            if (dynamic_cast<Deplacement *>(liste_abs[k])->get_Z() !=0){
-                                macro.append(liste_abs[k]);
+                        if (Parser::type_check(liste_entre[k]) == "Deplacement"){
+                            if (dynamic_cast<Deplacement *>(liste_entre[k])->get_Z() !=0){
+                                macro.append(liste_entre[k]);
                                 checkZ = 1;
 
                             }
                         }
                         k--;
                     }
+
+
+
 
                     for (int j = 0;j < macro.size();j++){
 
@@ -184,7 +207,8 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
                     macro.takeLast();
                 }
 
-                else if (Parser::type_check(liste_abs[i]) == "Figure"){
+
+                else if (Parser::type_check(liste_entre[i]) == "Figure"){
                 total_distance = 0.;
                 //qDebug() << "macro in"
 
@@ -192,9 +216,9 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
                 int k = i-1;
                 int checkZ =0;
                 while(checkZ == 0){
-                    if (Parser::type_check(liste_abs[k]) == "Deplacement"){
-                        if (dynamic_cast<Deplacement *>(liste_abs[k])->get_Z() !=0){
-                            macro.append(liste_abs[k]);
+                    if (Parser::type_check(liste_entre[k]) == "Deplacement"){
+                        if (dynamic_cast<Deplacement *>(liste_entre[k])->get_Z() !=0){
+                            macro.append(liste_entre[k]);
                             checkZ = 1;
 
                         }
@@ -202,23 +226,31 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
                     k--;
                 }
 
-                for (int j = 0;j < macro.size();j++){    
+                for (int j = 0;j < macro.size();j++){
                     liste_sortie.append(macro[j]);
                     }
                 macro.takeLast();
+                }
+
+                else if (Parser::type_check(liste_entre[i]) == "Figure"){
+                    total_distance = 0.;
+                    //qDebug() << "macro in";
+                    for (int j = 0;j < macro.size();j++)
+                        liste_sortie.append(macro[j]);
 
                 }
             }
-    }
+
+}
     if(total_distance > distance_min){
 
         //RECUPERATION DES VALEURS PRECEDENTES
         int k = i-1;
         int checkZ =0;
         while(checkZ == 0){
-            if (Parser::type_check(liste_abs[k]) == "Deplacement"){
-                if (dynamic_cast<Deplacement *>(liste_abs[k])->get_Z() !=0){
-                    macro.append(liste_abs[k]);
+            if (Parser::type_check(liste_entre[k]) == "Deplacement"){
+                if (dynamic_cast<Deplacement *>(liste_entre[k])->get_Z() !=0){
+                    macro.append(liste_entre[k]);
                     checkZ = 1;
 
                 }
@@ -236,6 +268,9 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
     write_liste(liste_sortie,"out.nc");
     //qDebug() << QString::number(check_dist);
 }
+
+
+
 
 void Parser::absolute_relative(QList<Ligne *> liste_gcode){
 
@@ -332,7 +367,7 @@ void Parser::clean_file(QString name){
 
 }
 
-void Parser::correspondance(QList<Ligne *> liste_abs, QString name){
+void Parser::AjoutMacros(QList<Ligne *> liste_entre, QString name){
 
     QString filename_corres = QCoreApplication::applicationDirPath() + "/" + name;
     QFile fichier_corres(filename_corres);
@@ -346,7 +381,7 @@ void Parser::correspondance(QList<Ligne *> liste_abs, QString name){
 
         if(ligne.contains("Distance")){
             QStringList liste = ligne.split(" ");
-            insert_macro(liste_abs,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
+            insert_macro_distance(liste_entre,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
 
         }
 
