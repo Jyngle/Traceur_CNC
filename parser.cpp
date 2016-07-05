@@ -125,6 +125,12 @@ QList<Ligne *> Parser::parse_gcode(QString name)
                   liste.append(Pause);
               }
 
+              if (ligne.contains("INPUT")){
+                  QStringList Param = ligne.split(" ");
+                  input *InPut = new input(Param[1], Param[2]);
+                  liste.append(InPut);
+              }
+
            }
     fichier_gcode.close();
     return liste;

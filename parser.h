@@ -5,6 +5,7 @@
 #include "ligne.h"
 #include "output.h"
 #include "pause.h"
+#include "input.h"
 
 
 class Parser
