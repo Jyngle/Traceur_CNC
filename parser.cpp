@@ -27,7 +27,7 @@ int Parser::GetValue(QString ligne, QString Key, QString &Value)
             else
                 Value = Param[i+1+j];//Récupération de la valeur
 
-            return 1;
+            return 1; //test
         }
     }
 return 0;
