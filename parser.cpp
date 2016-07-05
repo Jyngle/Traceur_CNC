@@ -117,9 +117,8 @@ QList<Ligne *> Parser::parse_gcode(QString name)
                   liste_objet_parse.append(OutPut);
               }
 
-              if (ligne.contains("PAUSE")){ //*********************************************************************
-                  QStringList Param = ligne.split(" ");
-                  pause *Pause = new pause(Param[1]);
+              if (ligne.contains("PAUSE") && GetValue(ligne,"PAUSE",valTMP)){ //*********************************************************************
+                  pause *Pause = new pause(valTMP);
                   liste_objet_parse.append(Pause);
               }
 
