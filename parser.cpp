@@ -152,6 +152,46 @@ void Parser::write_liste(QList<Ligne *> liste, QString name_out){
      out.close();
 }
 
+void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
+    float DistanceDepuisDebut = 0.;
+    int i, IndiceFigure = -1, DistanceaLaFigurePrecedente = 0;
+    QList<float> TailleFigure;
+
+    for(i=0; i < liste_entre.size(); i++) //Calcul de la longueur des figures
+    {
+        switch (type_check(liste_entre[i])) {
+        case "Deplacement":
+            DistanceDepuisDebut += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
+            break;
+        case "Figure":
+            if(IndiceFigure != -1)
+            {
+                TailleFigure.append(DistanceDepuisDebut-DistanceaLaFigurePrecedente);
+                dynamic_cast<Figure *>(liste_entre[IndiceFigure])->set_taille(DistanceDepuisDebut-DistanceaLaFigurePrecedente);
+                DistanceaLaFigurePrecedente = DistanceDepuisDebut;
+            }
+            IndiceFigure = i;
+            break;
+        default:
+            break;
+        }
+    }
+
+
+
+    for(i=0; i<liste_entre.size(); i++)//Cherche l'emplacement où insérer la macro
+    {
+        if(type_check(liste_entre[i]) != "Figure") continue;
+
+        TailleFigure = dynamic_cast<Figure *>(liste_entre[IndiceFigure])->get_taille();
+        if(TailleFigure > )
+
+    }
+
+
+
+
+}
 
 void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
 
