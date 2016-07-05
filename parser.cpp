@@ -168,7 +168,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
             liste_sortie.append(liste_entre[i]);
 
             if (Parser::type_check(liste_entre[i]) == "Deplacement"){
-                //qDebug() << QString::number(total_distance);
+                qDebug() << QString::number(total_distance);
                 total_distance += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
                 check_dist += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
             }
@@ -184,20 +184,21 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 
                     //RECUPERATION DES VALEURS PRECEDENTES
                     int k = i-1;
-                    int checkZ =0;
-                    while(checkZ == 0){
+                    float X,Y,Z;
+                    int check = 0;
+                    while(check == 0){
                         if (Parser::type_check(liste_entre[k]) == "Deplacement"){
-                            if (dynamic_cast<Deplacement *>(liste_entre[k])->get_Z() !=0){
-                                macro.append(liste_entre[k]);
-                                checkZ = 1;
-
-                            }
+                            Z = dynamic_cast<Deplacement *>(liste_entre[k])->get_Z();
+                            X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
+                            Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
+                            G00 * g00_X_Y = new G00(X,Y,0,0);
+                            G00 * g00_Z = new G00(0,0,Z,0);
+                            macro.append(g00_X_Y);
+                            macro.append(g00_Z);
+                            check = 1;
                         }
                         k--;
                     }
-
-
-
 
                     for (int j = 0;j < macro.size();j++){
 
@@ -205,23 +206,28 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
                         }
                     total_distance = 0.;
                     macro.takeLast();
+                    macro.takeLast();
                 }
 
 
                 else if (Parser::type_check(liste_entre[i]) == "Figure"){
                 total_distance = 0.;
-                //qDebug() << "macro in"
+                qDebug() << "macro in";
 
                 //RECUPERATION DES VALEURS PRECEDENTES
                 int k = i-1;
-                int checkZ =0;
-                while(checkZ == 0){
+                float X,Y,Z;
+                int check = 0;
+                while(check == 0){
                     if (Parser::type_check(liste_entre[k]) == "Deplacement"){
-                        if (dynamic_cast<Deplacement *>(liste_entre[k])->get_Z() !=0){
-                            macro.append(liste_entre[k]);
-                            checkZ = 1;
-
-                        }
+                        Z = dynamic_cast<Deplacement *>(liste_entre[k])->get_Z();
+                        X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
+                        Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
+                        G00 * g00_X_Y = new G00(X,Y,0,0);
+                        G00 * g00_Z = new G00(0,0,Z,0);
+                        macro.append(g00_X_Y);
+                        macro.append(g00_Z);
+                        check = 1;
                     }
                     k--;
                 }
@@ -230,11 +236,12 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
                     liste_sortie.append(macro[j]);
                     }
                 macro.takeLast();
+                macro.takeLast();
                 }
 
                 else if (Parser::type_check(liste_entre[i]) == "Figure"){
                     total_distance = 0.;
-                    //qDebug() << "macro in";
+                    qDebug() << "macro in";
                     for (int j = 0;j < macro.size();j++)
                         liste_sortie.append(macro[j]);
 
@@ -246,14 +253,18 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 
         //RECUPERATION DES VALEURS PRECEDENTES
         int k = i-1;
-        int checkZ =0;
-        while(checkZ == 0){
+        float X,Y,Z;
+        int check = 0;
+        while(check == 0){
             if (Parser::type_check(liste_entre[k]) == "Deplacement"){
-                if (dynamic_cast<Deplacement *>(liste_entre[k])->get_Z() !=0){
-                    macro.append(liste_entre[k]);
-                    checkZ = 1;
-
-                }
+                Z = dynamic_cast<Deplacement *>(liste_entre[k])->get_Z();
+                X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
+                Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
+                G00 * g00_X_Y = new G00(X,Y,0,0);
+                G00 * g00_Z = new G00(0,0,Z,0);
+                macro.append(g00_X_Y);
+                macro.append(g00_Z);
+                check = 1;
             }
             k--;
         }
@@ -262,6 +273,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 
             liste_sortie.append(macro[j]);
         }
+        macro.takeLast();
         macro.takeLast();
     }
 
