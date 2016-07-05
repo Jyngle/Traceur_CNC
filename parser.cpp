@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QCoreApplication>
+#include <QThread>
 
 
 int Parser::GetValue(QString ligne, QString Key, QString &Value)
@@ -158,7 +159,6 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
     float total_distance = 0.,check_dist = 0.;
     QList<Ligne *> liste_sortie;
     int indice;
-
     int i;
 
 
@@ -192,7 +192,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
                             X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
                             Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
                             G00 * g00_X_Y = new G00(X,Y,0,0);
-                            G00 * g00_Z = new G00(0,0,Z,0);
+                            G00 * g00_Z = new G00(X,Y,Z,0);
                             macro.append(g00_X_Y);
                             macro.append(g00_Z);
                             check = 1;
@@ -224,7 +224,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
                         X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
                         Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
                         G00 * g00_X_Y = new G00(X,Y,0,0);
-                        G00 * g00_Z = new G00(0,0,Z,0);
+                        G00 * g00_Z = new G00(X,Y,Z,0);
                         macro.append(g00_X_Y);
                         macro.append(g00_Z);
                         check = 1;
@@ -261,7 +261,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
                 X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
                 Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
                 G00 * g00_X_Y = new G00(X,Y,0,0);
-                G00 * g00_Z = new G00(0,0,Z,0);
+                G00 * g00_Z = new G00(X,Y,Z,0);
                 macro.append(g00_X_Y);
                 macro.append(g00_Z);
                 check = 1;
@@ -282,8 +282,6 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 }
 
 
-
-
 void Parser::absolute_relative(QList<Ligne *> liste_gcode){
 
     QList<Ligne*> liste_dep;
@@ -291,7 +289,7 @@ void Parser::absolute_relative(QList<Ligne *> liste_gcode){
         if (Parser::type_check(liste_gcode[i]) == "Deplacement"){
             liste_dep.append(liste_gcode[i]);
         }
-    }
+    } //recupere une liste avec que les deplacements
 
     float X_new,Y_new,X_actu,Y_actu,X_prec,Y_prec;
     QList<float> liste_new;
@@ -310,11 +308,6 @@ void Parser::absolute_relative(QList<Ligne *> liste_gcode){
             X_new = X_actu - X_prec;
             Y_new = Y_actu - Y_prec;
 
-            if (X_actu == 0 && Y_actu == 0){
-                dynamic_cast<Deplacement *>(liste_dep[i])->set_info_abs(X_prec,Y_prec);
-                X_new = 0;
-                Y_new = 0;
-            }
             liste_new.append(X_new);
             liste_new.append(Y_new);
         }
@@ -331,6 +324,8 @@ void Parser::absolute_relative(QList<Ligne *> liste_gcode){
                         liste_gcode.replace(i,liste_dep.takeFirst());
                     }
         }
+
+
 
     compute_taille_figure(liste_gcode);
 }
