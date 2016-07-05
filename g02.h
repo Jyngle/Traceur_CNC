@@ -18,7 +18,6 @@ public :
 private:
     float I = 0;
     float J = 0;
-    float Z = 0;
 };
 
 #endif // G02_H

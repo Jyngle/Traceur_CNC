@@ -21,6 +21,7 @@ protected:
     float X_rel = 0;
     float Y_rel = 0;
     float F = 0;
+    float Z = 0;
 };
 
 #endif // DEPLACEMENT_H

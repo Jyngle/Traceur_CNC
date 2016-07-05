@@ -14,9 +14,6 @@ public :
     virtual void set_info_abs(float _X, float _Y);
     virtual void set_info_rel(float _X, float _Y);
     virtual float get_Z();
-
-private:
-    float Z = 0;
 };
 
 #endif // G01_H
