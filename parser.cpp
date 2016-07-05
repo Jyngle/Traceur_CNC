@@ -162,25 +162,75 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
 
                 if ( dynamic_cast<Figure *>(liste_abs[indice])->get_taille() > distance_max ){
 
+                    //RECUPERATION DES VALEURS PRECEDENTES
+                    int k = i-1;
+                    int checkZ =0;
+                    while(checkZ == 0){
+                        if (Parser::type_check(liste_abs[k]) == "Deplacement"){
+                            if (dynamic_cast<Deplacement *>(liste_abs[k])->get_Z() !=0){
+                                macro.append(liste_abs[k]);
+                                checkZ = 1;
+
+                            }
+                        }
+                        k--;
+                    }
+
                     for (int j = 0;j < macro.size();j++){
+
                         liste_sortie.append(macro[j]);
                         }
                     total_distance = 0.;
+                    macro.takeLast();
                 }
 
                 else if (Parser::type_check(liste_abs[i]) == "Figure"){
                 total_distance = 0.;
                 //qDebug() << "macro in"
-                for (int j = 0;j < macro.size();j++){
+
+                //RECUPERATION DES VALEURS PRECEDENTES
+                int k = i-1;
+                int checkZ =0;
+                while(checkZ == 0){
+                    if (Parser::type_check(liste_abs[k]) == "Deplacement"){
+                        if (dynamic_cast<Deplacement *>(liste_abs[k])->get_Z() !=0){
+                            macro.append(liste_abs[k]);
+                            checkZ = 1;
+
+                        }
+                    }
+                    k--;
+                }
+
+                for (int j = 0;j < macro.size();j++){    
                     liste_sortie.append(macro[j]);
                     }
+                macro.takeLast();
+
                 }
             }
     }
     if(total_distance > distance_min){
+
+        //RECUPERATION DES VALEURS PRECEDENTES
+        int k = i-1;
+        int checkZ =0;
+        while(checkZ == 0){
+            if (Parser::type_check(liste_abs[k]) == "Deplacement"){
+                if (dynamic_cast<Deplacement *>(liste_abs[k])->get_Z() !=0){
+                    macro.append(liste_abs[k]);
+                    checkZ = 1;
+
+                }
+            }
+            k--;
+        }
+
         for (int j = 0;j < macro.size();j++){
+
             liste_sortie.append(macro[j]);
         }
+        macro.takeLast();
     }
 
     write_liste(liste_sortie,"out.nc");
