@@ -145,8 +145,9 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
     float total_distance = 0.,check_dist = 0.;
     QList<Ligne *> liste_sortie;
     int indice;
-    for (int i = 0;i < liste_abs.size();i++){
+    int i;
 
+    for (i = 0;i < liste_abs.size();i++){
 
             liste_sortie.append(liste_abs[i]);
             if (Parser::type_check(liste_abs[i]) == "Deplacement"){
@@ -160,6 +161,7 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
             if(total_distance > distance_min){
 
                 if ( dynamic_cast<Figure *>(liste_abs[indice])->get_taille() > distance_max ){
+
                     for (int j = 0;j < macro.size();j++){
                         liste_sortie.append(macro[j]);
                         }
@@ -168,7 +170,7 @@ void Parser::insert_macro(QList<Ligne *> liste_abs, QList<Ligne *> macro, float 
 
                 else if (Parser::type_check(liste_abs[i]) == "Figure"){
                 total_distance = 0.;
-                //qDebug() << "macro in";
+                //qDebug() << "macro in"
                 for (int j = 0;j < macro.size();j++){
                     liste_sortie.append(macro[j]);
                     }
@@ -197,16 +199,16 @@ void Parser::absolute_relative(QList<Ligne *> liste_gcode){
     float X_new,Y_new,X_actu,Y_actu,X_prec,Y_prec;
     QList<float> liste_new;
 
-        liste_new.append(dynamic_cast<Deplacement *>(liste_dep[0])->get_info()[0]);
-        liste_new.append(dynamic_cast<Deplacement *>(liste_dep[0])->get_info()[1]);
+        liste_new.append(dynamic_cast<Deplacement *>(liste_dep[0])->get_info_abs()[0]);
+        liste_new.append(dynamic_cast<Deplacement *>(liste_dep[0])->get_info_abs()[1]);
 
         for (int i = 1;i< liste_dep.size();i++){
 
-            X_actu = dynamic_cast<Deplacement *>(liste_dep[i])->get_info()[0];
-            Y_actu = dynamic_cast<Deplacement *>(liste_dep[i])->get_info()[1];
+            X_actu = dynamic_cast<Deplacement *>(liste_dep[i])->get_info_abs()[0];
+            Y_actu = dynamic_cast<Deplacement *>(liste_dep[i])->get_info_abs()[1];
 
-            X_prec = dynamic_cast<Deplacement *>(liste_dep[i-1])->get_info()[0];
-            Y_prec = dynamic_cast<Deplacement *>(liste_dep[i-1])->get_info()[1];
+            X_prec = dynamic_cast<Deplacement *>(liste_dep[i-1])->get_info_abs()[0];
+            Y_prec = dynamic_cast<Deplacement *>(liste_dep[i-1])->get_info_abs()[1];
 
             X_new = X_actu - X_prec;
             Y_new = Y_actu - Y_prec;

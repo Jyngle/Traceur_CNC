@@ -11,11 +11,19 @@ G02::G02(float _X, float _Y, float _I, float _J, float _F){
     F = _F;
 }
 
-QList<float> G02::get_info(){
+QList<float> G02::get_info_abs(){
     QList<float> liste;
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "I = " << QString::number(I) << "J = " << QString::number(J) << "F = " << QString::number(F);
     liste.append(X_abs);
     liste.append(Y_abs);
+    return liste;
+}
+
+QList<float> G02::get_info_rel(){
+    QList<float> liste;
+    //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "I = " << QString::number(I) << "J = " << QString::number(J) << "F = " << QString::number(F);
+    liste.append(X_rel);
+    liste.append(Y_rel);
     return liste;
 }
 
@@ -29,6 +37,10 @@ void G02::set_info_rel(float _X, float _Y){
 
     X_rel = _X;
     Y_rel = _Y;
+}
+
+float G02::get_Z(){
+    return Z;
 }
 
 
