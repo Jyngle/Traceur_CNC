@@ -66,7 +66,7 @@ QList<Ligne *> Parser::parse_gcode(QString name)
                   if(GetValue(ligne,"Z",valTMP))
                       Z = valTMP.toFloat();
 
-                  qDebug() << "test" << "X : " << X << " Y : " << Y << " Z : " << Z << endl;
+                  //qDebug() << "test" << "X : " << X << " Y : " << Y << " Z : " << Z << endl;
                   if (ligne.contains("G0"))
                   {
                       G00 * g00 = new G00(X,Y,Z,F);
