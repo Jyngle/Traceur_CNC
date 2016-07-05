@@ -15,6 +15,14 @@ int main(int argc, char *argv[])
 
     Parser::absolute_relative(liste_gcode);
 
+
+    /*for (int i = 0;i<liste_gcode.size();i++){
+        if (Parser::type_check(liste_gcode[i]) == "Deplacement"){
+            qDebug() << QString::number(dynamic_cast<Deplacement *>(liste_gcode[i])->get_info_rel()[0]);
+            qDebug() << QString::number(dynamic_cast<Deplacement *>(liste_gcode[i])->get_info_rel()[1]);
+        }
+    }*/
+
     Parser::AjoutMacros(liste_gcode,"correspondance.txt");
 
     return 0;

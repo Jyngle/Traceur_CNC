@@ -168,7 +168,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
             liste_sortie.append(liste_entre[i]);
 
             if (Parser::type_check(liste_entre[i]) == "Deplacement"){
-                qDebug() << QString::number(total_distance);
+                //qDebug() << QString::number(total_distance);
                 total_distance += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
                 check_dist += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
             }
@@ -212,7 +212,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 
                 else if (Parser::type_check(liste_entre[i]) == "Figure"){
                 total_distance = 0.;
-                qDebug() << "macro in";
+                //qDebug() << "macro in";
 
                 //RECUPERATION DES VALEURS PRECEDENTES
                 int k = i-1;
@@ -241,7 +241,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 
                 else if (Parser::type_check(liste_entre[i]) == "Figure"){
                     total_distance = 0.;
-                    qDebug() << "macro in";
+                    //qDebug() << "macro in";
                     for (int j = 0;j < macro.size();j++)
                         liste_sortie.append(macro[j]);
 
