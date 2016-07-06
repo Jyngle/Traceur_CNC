@@ -5,7 +5,7 @@ G01::G01(float _X, float _Y, float _Z, float _F){
 
     X_abs = _X;
     Y_abs = _Y;
-    Z = _Z;
+    Z_abs = _Z;
     F = _F;
 }
 
@@ -14,6 +14,7 @@ QList<float> G01::get_info_abs(){
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "Z = " << QString::number(Z) << "F = " << QString::number(F);
     liste.append(X_abs);
     liste.append(Y_abs);
+    liste.append(Z_abs);
     return liste;
 }
 
@@ -44,13 +45,13 @@ void G01::set_info_rel(float _X, float _Y){
 }
 
 float G01::get_Z(){
-    return Z;
+    return Z_abs;
 }
 
 QString G01::gcode_ligne(){
     QString ligne;
     //qDebug() << "G01 X "+ QString::number(X_abs) + " Y " + QString::number(Y_abs) + " Z "  + QString::number(Z) + " F " + QString::number(F);
-    ligne = "G01 X " + QString::number(X_abs) + " Y " + QString::number(Y_abs)  + " Z " + QString::number(Z) +  " F " + QString::number(F);
+    ligne = "G01 X " + QString::number(X_abs) + " Y " + QString::number(Y_abs)  + " Z " + QString::number(Z_abs) +  " F " + QString::number(F);
     return ligne;
 
 }

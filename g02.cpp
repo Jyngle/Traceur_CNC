@@ -16,6 +16,7 @@ QList<float> G02::get_info_abs(){
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "I = " << QString::number(I) << "J = " << QString::number(J) << "F = " << QString::number(F);
     liste.append(X_abs);
     liste.append(Y_abs);
+    liste.append(Z_abs);
     return liste;
 }
 
@@ -40,7 +41,7 @@ void G02::set_info_rel(float _X, float _Y){
 }
 
 float G02::get_Z(){
-    return Z;
+    return Z_abs;
 }
 
 

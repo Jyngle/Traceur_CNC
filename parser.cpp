@@ -116,173 +116,71 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
     fichier_gcode.close();
 }
 
-/*
-void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
-    float DistanceDepuisDebut = 0.;
-    int i, IndiceFigure = -1, DistanceaLaFigurePrecedente = 0;
-    QList<float> TailleFigure;
-    QString Type;
+//*********************************************************
 
-    for(i=0; i < liste_entre.size(); i++) //Calcul de la longueur des figures
+
+void Parser::insert_macro_at(QString FileNameMacro, int Index)
+{
+    float X = 0, Y = 0, Z = 0;
+    int F = 0;
+    QList<float> CoordonneeABSXYZ;
+    QList<Ligne *> ListeGcodeMacro;
+
+
+    QList<Ligne *>::iterator IT;
+
+    for(IT += Index; type_check(*IT) != "Deplacement" || IT != _ListeGcode.begin(); IT--);
+
+    if(IT != _ListeGcode.begin())
     {
-        Type = type_check(liste_entre[i]);
-        if(Type == "Deplacement")
-            DistanceDepuisDebut += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
-        else if(Type == "Figure")
-        {
-            if(IndiceFigure != -1)
-            {
-                TailleFigure.append(DistanceDepuisDebut-DistanceaLaFigurePrecedente);
-                dynamic_cast<Figure *>(liste_entre[IndiceFigure])->set_taille(DistanceDepuisDebut-DistanceaLaFigurePrecedente);
-                DistanceaLaFigurePrecedente = DistanceDepuisDebut;
-            }
-            IndiceFigure = i;
-        }
+        CoordonneeABSXYZ = dynamic_cast<Deplacement*>(*IT)->get_info_abs();
+        X = CoordonneeABSXYZ[0];
+        Y = CoordonneeABSXYZ[1];
+        Z = CoordonneeABSXYZ[2];
+        F = dynamic_cast<Deplacement*>(*IT)->getF();
     }
 
+    parse_gcode_file(FileNameMacro,ListeGcodeMacro,X,Y,Z,F);
 
+    macro * Macro = new macro("Distance",ListeGcodeMacro);
 
-    for(i=0; i<liste_entre.size(); i++)//Cherche l'emplacement où insérer la macro
+    _ListeGcode.insert(Index,Macro);
+
+}
+
+//*********************************************************
+void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, float distance_max)
+{
+    float TailleDepuisDerniereOccurrence = 0;
+    int Index = 0;
+
+    QList<Ligne *>::iterator IT;
+
+    for(IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++, Index++)
     {
-        if(type_check(liste_entre[i]) != "Figure") continue;
-
-        TailleFigure = dynamic_cast<Figure *>(liste_entre[IndiceFigure])->get_taille();
-        if(TailleFigure > )
-
-    }
-
-
-
-
-}*/
-
-void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
-
-    float distance_entre_macro = 0.,distance_totale = 0.;
-    QList<Ligne *> liste_sortie;
-    int indice;
-    int i;
-
-
-    for (i = 0;i < liste_entre.size();i++)
-    {
-            liste_sortie.append(liste_entre[i]);//-----------------------------------------------------------
-
-            if (Parser::type_check(liste_entre[i]) == "Deplacement"){
-                //qDebug() << QString::number(total_distance);
-                distance_entre_macro += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
-                distance_totale += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
-            }
-
-            if (Parser::type_check(liste_entre[i]) == "Figure")
-                indice = i;
-
-
-            if(distance_entre_macro > distance_min)
-            {
-                if ( dynamic_cast<Figure *>(liste_entre[indice])->get_taille() > distance_max )
-                {
-                    //RECUPERATION DES VALEURS PRECEDENTES
-                    int k = i-1;
-                    float X,Y,Z;
-                    int check = 0;
-                    while(check == 0)
-                    {
-                        if (Parser::type_check(liste_entre[k]) == "Deplacement")
-                        {
-                            Z = dynamic_cast<Deplacement *>(liste_entre[k])->get_Z();
-                            X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
-                            Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
-                            G00 * g00_X_Y = new G00(X,Y,0,0);
-                            G00 * g00_Z = new G00(X,Y,Z,0);
-                            macro.append(g00_X_Y);
-                            macro.append(g00_Z);
-                            check = 1;
-                        }
-                        k--;
-                    }
-
-                    for (int j = 0;j < macro.size();j++)
-                        liste_sortie.append(macro[j]);//-----------------------------------------------------------
-
-                    distance_entre_macro = 0.;
-                    macro.takeLast();
-                    macro.takeLast();
-                }
-                else if (Parser::type_check(liste_entre[i]) == "Figure")
-                {
-                    distance_entre_macro = 0.;
-                    //qDebug() << "macro in";
-
-                    //RECUPERATION DES VALEURS PRECEDENTES
-                    int k = i-1;
-                    float X,Y,Z;
-                    int check = 0;
-                    while(check == 0)
-                    {
-                        if (Parser::type_check(liste_entre[k]) == "Deplacement"){
-                            Z = dynamic_cast<Deplacement *>(liste_entre[k])->get_Z();
-                            X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
-                            Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
-                            G00 * g00_X_Y = new G00(X,Y,0,0);
-                            G00 * g00_Z = new G00(X,Y,Z,0);
-                            macro.append(g00_X_Y);
-                            macro.append(g00_Z);
-                            check = 1;
-                        }
-                        k--;
-                    }
-
-                    for (int j = 0;j < macro.size();j++)
-                        liste_sortie.append(macro[j]); //-----------------------------------------------------------
-
-                    macro.takeLast();
-                    macro.takeLast();
-                }
-                else if (Parser::type_check(liste_entre[i]) == "Figure")
-                {
-                    distance_entre_macro = 0.;
-                    //qDebug() << "macro in";
-                    for (int j = 0;j < macro.size();j++)
-                        liste_sortie.append(macro[j]);
-                }
-            }
-    }
-
-    if(distance_entre_macro > distance_min)
-    {
-        //RECUPERATION DES VALEURS PRECEDENTES
-        int k = i-1;
-        float X,Y,Z;
-        int check = 0;
-        while(check == 0)
+        if(type_check(*IT) != "Figure")
         {
-            if (Parser::type_check(liste_entre[k]) == "Deplacement")
-            {
-                Z = dynamic_cast<Deplacement *>(liste_entre[k])->get_Z();
-                X = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[0];
-                Y = dynamic_cast<Deplacement *>(liste_entre[k])->get_info_abs()[1];
-                G00 * g00_X_Y = new G00(X,Y,0,0);
-                G00 * g00_Z = new G00(X,Y,Z,0);
-                macro.append(g00_X_Y);
-                macro.append(g00_Z);
-                check = 1;
-            }
-            k--;
+           if(TailleDepuisDerniereOccurrence >= distance_min)
+           {
+               insert_macro_at(FileNameMacro, Index);
+               TailleDepuisDerniereOccurrence = 0;
+           }
         }
 
-        for (int j = 0;j < macro.size();j++)
+        if(type_check(*IT) != "Deplacement")
         {
-            liste_sortie.append(macro[j]);//-----------------------------------------------------------
-
-        macro.takeLast();
-        macro.takeLast();
+            TailleDepuisDerniereOccurrence += dynamic_cast<Deplacement*>(*IT)->get_distance();
+            if(TailleDepuisDerniereOccurrence >= distance_max)
+            {
+                insert_macro_at(FileNameMacro, Index);
+                TailleDepuisDerniereOccurrence = 0;
+            }
         }
-
-    WriteOutputFile("out.nc");//-----------------------------------------------------------
-    //qDebug() << QString::number(check_dist);
     }
 }
+//*********************************************************
+
+//*********************************************************
 
 void Parser::absolute_relative(){
 
@@ -389,9 +287,8 @@ void Parser::AjoutMacros(QString FileNameCorespondance){
         ligne = fichier_in.readLine();
 
         if(ligne.contains("Distance")){
-            QStringList liste = ligne.split(" ");
-            //insert_macro_distance(ListeGcode,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
-
+            QStringList liste = ligne.split(" ");        
+            insert_macro_distance(liste[4],liste[2].toFloat(),liste[3].toFloat());
         }
 
     }

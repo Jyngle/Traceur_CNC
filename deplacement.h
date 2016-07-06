@@ -14,6 +14,7 @@ public:
     virtual void set_info_rel(float _X, float _Y) = 0;
     virtual QString gcode_ligne() = 0;
     virtual float get_Z() = 0;
+    int getF(){return F;}
 
 
 
@@ -23,7 +24,7 @@ protected:
     float X_rel = 0;
     float Y_rel = 0;
     float F = 0;
-    float Z = 0;
+    float Z_abs = 0;
 };
 
 #endif // DEPLACEMENT_H

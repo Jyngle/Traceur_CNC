@@ -15,11 +15,11 @@ public:
     macro(QString name, QList<Ligne *> ListeGcodeMacro);
 
     void SetPositionRetour(float X, float Y, float Z);
-    virtual QString gcode_ligne() = 0;
+    virtual QString gcode_ligne();
 
     QString _name;
 
-private:
+
 
 };
 
