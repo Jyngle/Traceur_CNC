@@ -13,17 +13,17 @@ class Parser
 
 public:
 
-    void parse_gcode(QString name);
-    void write_liste(QString name_out);
-    void AjoutMacros(QString CorespondanceFile);
+    void ReadInputFile(QString FileNameIN);
+    void WriteOutputFile(QString FileNameOUT);
+    void AjoutMacros(QString FileNameCorespondance);
 
 
 protected:
 
 
-    QList<Ligne *> ListeGcode;
+    QList<Ligne *> _ListeGcode;
 
-    void parse_gcode_file(QString name);
+    void parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F);
 
     void insert_macro_distance(QList<Ligne *> liste_abs, QList<Ligne *> macro, float distance_min, float distance_max);
     //static void insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> macro, float distance_min, float distance_max);

@@ -11,42 +11,17 @@
 
 
 
-void Parser::parse_gcode(QString name)
+void Parser::ReadInputFile(QString FileNameIN)
 {
-
-
-    Parser::clean_file(name);
-    Parser::parse_gcode_file("gcode.nc");
+    clean_file(FileNameIN);
+    parse_gcode_file("gcode.nc",_ListeGcode, 0, 0, 0, 0);
     absolute_relative();
-
 }
 
 
-int Parser::GetValue(QString ligne, QString Key, QString &Value)
-{
-    QStringList Param = ligne.split(" ");
 
-    if(!ligne.contains(Key)) {return 0;}
-    int j=0;
 
-    for(int i=0; i<Param.size(); i++)
-    {
-        if(Param[i] == Key)// Si la clef est trouvée
-        {
-            for(j=0; i + 1 + j <= Param.size() && Param[i+1+j] == ""; j++);//supression des espaces après la clef
-
-            if(i+1+j > Param.size()+1) //Pas de valeur trouvées
-                return 0;
-            else
-                Value = Param[i+1+j];//Récupération de la valeur
-
-            return 1; //test
-        }
-    }
-return 0;
-}
-
-void Parser::parse_gcode_file(QString name)
+void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F)
 {
 
     QString filename = QCoreApplication::applicationDirPath() + "/" + name;
@@ -58,11 +33,9 @@ void Parser::parse_gcode_file(QString name)
     else
         qDebug() << "Probleme a la lecture du fichier" << endl;
 
-    int F = 0;//Vitesse par default
-    float X = 0, Y = 0, Z = 0;
+    //int F = 0;//Vitesse par default
+    //float X = 0, Y = 0, Z = 0;
     QString valTMP;
-
-    QList<Ligne*>::iterator i;
 
     while (!fichier_in.atEnd())
            {
@@ -83,12 +56,12 @@ void Parser::parse_gcode_file(QString name)
                   if (ligne.contains("G0"))
                   {
                       G00 * g00 = new G00(X,Y,Z,F);
-                      ListeGcode.append(g00);
+                      __ListeGcode.append(g00);
                   }
                   else
                   {
                       G01 * g01 = new G01(X,Y,Z,F);
-                      ListeGcode.append(g01);
+                      __ListeGcode.append(g01);
                   }
 
               }
@@ -115,51 +88,32 @@ void Parser::parse_gcode_file(QString name)
 
                   //qDebug() << "X : " << X << " Y : " << Y << " I : " << I << " J : " << J << endl;
                   G02 * g02 = new G02(X,Y,I,J,F);
-                  ListeGcode.append(g02);
+                  __ListeGcode.append(g02);
               }
 
               if (ligne.contains("SHAPE")){ //********************************************************************* 
                 Figure * figure = new Figure();
-                ListeGcode.append(figure);
+                __ListeGcode.append(figure);
               }
 
               if (ligne.contains("OUTPUT")){//*********************************************************************
                   QStringList Param = ligne.split(" ");
                   output *OutPut = new output(Param[1], Param[2]);
-                  ListeGcode.append(OutPut);
+                  __ListeGcode.append(OutPut);
               }
 
               if (ligne.contains("PAUSE") && GetValue(ligne,"PAUSE",valTMP)){ //*********************************************************************
                   pause *Pause = new pause(valTMP);
-                  ListeGcode.append(Pause);
+                  __ListeGcode.append(Pause);
               }
 
               if (ligne.contains("INPUT")){ //*********************************************************************
                   QStringList Param = ligne.split(" ");
                   input *InPut = new input(Param[1], Param[2]);
-                  ListeGcode.append(InPut);
+                  __ListeGcode.append(InPut);
               }
            }
     fichier_gcode.close();
-}
-
-QString Parser::type_check(Ligne *elt){
-    if (dynamic_cast<Deplacement *>(elt)){return "Deplacement";}
-    if (dynamic_cast<Figure *>(elt)){return "Figure";}
-        else return "inconnu";
-}
-
-void Parser::write_liste(QString name_out){
-
-     QString filename_out = QCoreApplication::applicationDirPath() + "/" + name_out;
-     QFile out(filename_out);
-     QTextStream stream_out(&out);
-     out.open(QIODevice::WriteOnly | QIODevice::Text);
-
-     for (int i = 0;i<ListeGcode.size();i++){
-         stream_out << ListeGcode[i]->gcode_ligne() << endl;
-     }
-     out.close();
 }
 
 /*
@@ -325,7 +279,7 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
         macro.takeLast();
         }
 
-    write_liste("out.nc");//-----------------------------------------------------------
+    WriteOutputFile("out.nc");//-----------------------------------------------------------
     //qDebug() << QString::number(check_dist);
     }
 }
@@ -333,9 +287,9 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
 void Parser::absolute_relative(){
 
     QList<Ligne*> liste_dep;
-    for(int i = 0;i<ListeGcode.size();i++){
-        if (Parser::type_check(ListeGcode[i]) == "Deplacement"){
-            liste_dep.append(ListeGcode[i]);
+    for(int i = 0;i<_ListeGcode.size();i++){
+        if (Parser::type_check(_ListeGcode[i]) == "Deplacement"){
+            liste_dep.append(_ListeGcode[i]);
         }
     } //recupere une liste avec que les deplacements
 
@@ -367,15 +321,15 @@ void Parser::absolute_relative(){
             dynamic_cast<Deplacement *>(liste_dep[i])->set_info_rel(X_rel,Y_rel);
         }
 
-        for(int i = 0;i<ListeGcode.size();i++){
-                    if (Parser::type_check(ListeGcode[i]) == "Deplacement"){
-                        ListeGcode.replace(i,liste_dep.takeFirst());
+        for(int i = 0;i<_ListeGcode.size();i++){
+                    if (Parser::type_check(_ListeGcode[i]) == "Deplacement"){
+                        _ListeGcode.replace(i,liste_dep.takeFirst());
                     }
         }
 
 
 
-    compute_taille_figure(ListeGcode);
+    compute_taille_figure(_ListeGcode);
 }
 
 void Parser::compute_taille_figure(QList<Ligne *> liste_gcode){
@@ -422,9 +376,9 @@ void Parser::clean_file(QString name){
 
 }
 
-void Parser::AjoutMacros(QString CorespondanceFile){
+void Parser::AjoutMacros(QString FileNameCorespondance){
 
-    QString filename_corres = QCoreApplication::applicationDirPath() + "/" + CorespondanceFile;
+    QString filename_corres = QCoreApplication::applicationDirPath() + "/" + FileNameCorespondance;
     QFile fichier_corres(filename_corres);
     QTextStream fichier_in(&fichier_corres);
 
@@ -444,7 +398,46 @@ void Parser::AjoutMacros(QString CorespondanceFile){
 
 }
 
+void Parser::WriteOutputFile(QString FileNameOUT){
 
+     QString filename_out = QCoreApplication::applicationDirPath() + "/" + FileNameOUT;
+     QFile out(filename_out);
+     QTextStream stream_out(&out);
+     out.open(QIODevice::WriteOnly | QIODevice::Text);
 
+     for (int i = 0;i<_ListeGcode.size();i++){
+         stream_out << _ListeGcode[i]->gcode_ligne() << endl;
+     }
+     out.close();
+}
 
+int Parser::GetValue(QString ligne, QString Key, QString &Value)
+{
+    QStringList Param = ligne.split(" ");
+
+    if(!ligne.contains(Key)) {return 0;}
+    int j=0;
+
+    for(int i=0; i<Param.size(); i++)
+    {
+        if(Param[i] == Key)// Si la clef est trouvée
+        {
+            for(j=0; i + 1 + j <= Param.size() && Param[i+1+j] == ""; j++);//supression des espaces après la clef
+
+            if(i+1+j > Param.size()+1) //Pas de valeur trouvées
+                return 0;
+            else
+                Value = Param[i+1+j];//Récupération de la valeur
+
+            return 1; //test
+        }
+    }
+return 0;
+}
+
+QString Parser::type_check(Ligne *elt){
+    if (dynamic_cast<Deplacement *>(elt)){return "Deplacement";}
+    if (dynamic_cast<Figure *>(elt)){return "Figure";}
+        else return "inconnu";
+}
 

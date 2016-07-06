@@ -12,9 +12,9 @@ int main(int argc, char *argv[])
 
     Parser GParser;
 
-    GParser.parse_gcode("source.nc");
+    GParser.ReadInputFile("source.nc");
     GParser.AjoutMacros("correspondance.txt");
-    GParser.write_liste("out.nc");
+    GParser.WriteOutputFile("out.nc");
 
     return 0;
 }
