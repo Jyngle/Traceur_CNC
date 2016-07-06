@@ -151,19 +151,20 @@ void Parser::write_liste(QList<Ligne *> liste, QString name_out){
      }
      out.close();
 }
-
+/*
 void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
     float DistanceDepuisDebut = 0.;
     int i, IndiceFigure = -1, DistanceaLaFigurePrecedente = 0;
     QList<float> TailleFigure;
+    QString Type;
 
     for(i=0; i < liste_entre.size(); i++) //Calcul de la longueur des figures
     {
-        switch (type_check(liste_entre[i])) {
-        case "Deplacement":
+        Type = type_check(liste_entre[i]);
+        if(Type == "Deplacement")
             DistanceDepuisDebut += dynamic_cast<Deplacement *>(liste_entre[i])->get_distance();
-            break;
-        case "Figure":
+        else if(Type == "Figure")
+        {
             if(IndiceFigure != -1)
             {
                 TailleFigure.append(DistanceDepuisDebut-DistanceaLaFigurePrecedente);
@@ -171,9 +172,6 @@ void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> 
                 DistanceaLaFigurePrecedente = DistanceDepuisDebut;
             }
             IndiceFigure = i;
-            break;
-        default:
-            break;
         }
     }
 
@@ -191,7 +189,7 @@ void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> 
 
 
 
-}
+}*/
 
 void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
 
