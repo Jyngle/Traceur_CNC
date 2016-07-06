@@ -50,8 +50,7 @@ float G01::get_Z(){
 QString G01::gcode_ligne(){
     QString ligne;
     //qDebug() << "G01 X "+ QString::number(X_abs) + " Y " + QString::number(Y_abs) + " Z "  + QString::number(Z) + " F " + QString::number(F);
-    if (X_rel == 0 && Y_rel == 0 && Z != 0){ligne = "G01 Z " + QString::number(Z) + " F " + QString::number(F);}
-    else ligne = "G01 X " + QString::number(X_abs) + " Y " + QString::number(Y_abs) +" F " + QString::number(F);
+    ligne = "G01 X " + QString::number(X_abs) + " Y " + QString::number(Y_abs)  + " Z " + QString::number(Z) +  " F " + QString::number(F);
     return ligne;
 
 }
