@@ -26,6 +26,7 @@ public:
     static void AjoutMacros(QList<Ligne *> liste_abs, QString name);
     static int GetValue(QString ligne, QString Key, QString &Value);
 
+
 };
 
 #endif // PARSER_H
