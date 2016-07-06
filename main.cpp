@@ -9,13 +9,12 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     qDebug() << "Parser Gcode pour RaspberryPi" << endl;
 
-    Parser::clean_file("source.nc");
 
-    QList<Ligne*> liste_gcode = Parser::parse_gcode("gcode.nc");
+    Parser GParser;
 
-    Parser::absolute_relative(liste_gcode);
-
-    Parser::AjoutMacros(liste_gcode,"correspondance.txt");
+    GParser.parse_gcode("source.nc");
+    GParser.AjoutMacros("correspondance.txt");
+    GParser.write_liste("out.nc");
 
     return 0;
 }

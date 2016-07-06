@@ -10,6 +10,18 @@
 #include <QThread>
 
 
+
+void Parser::parse_gcode(QString name)
+{
+
+
+    Parser::clean_file(name);
+    Parser::parse_gcode_file("gcode.nc");
+    absolute_relative();
+
+}
+
+
 int Parser::GetValue(QString ligne, QString Key, QString &Value)
 {
     QStringList Param = ligne.split(" ");
@@ -34,7 +46,7 @@ int Parser::GetValue(QString ligne, QString Key, QString &Value)
 return 0;
 }
 
-QList<Ligne *> Parser::parse_gcode(QString name)
+void Parser::parse_gcode_file(QString name)
 {
 
     QString filename = QCoreApplication::applicationDirPath() + "/" + name;
@@ -50,7 +62,7 @@ QList<Ligne *> Parser::parse_gcode(QString name)
     float X = 0, Y = 0, Z = 0;
     QString valTMP;
 
-    QList<Ligne*> liste_objet_parse;
+    QList<Ligne*>::iterator i;
 
     while (!fichier_in.atEnd())
            {
@@ -71,12 +83,12 @@ QList<Ligne *> Parser::parse_gcode(QString name)
                   if (ligne.contains("G0"))
                   {
                       G00 * g00 = new G00(X,Y,Z,F);
-                      liste_objet_parse.append(g00);
+                      ListeGcode.append(g00);
                   }
                   else
                   {
                       G01 * g01 = new G01(X,Y,Z,F);
-                      liste_objet_parse.append(g01);
+                      ListeGcode.append(g01);
                   }
 
               }
@@ -103,34 +115,32 @@ QList<Ligne *> Parser::parse_gcode(QString name)
 
                   //qDebug() << "X : " << X << " Y : " << Y << " I : " << I << " J : " << J << endl;
                   G02 * g02 = new G02(X,Y,I,J,F);
-                  liste_objet_parse.append(g02);
+                  ListeGcode.append(g02);
               }
 
-              if (ligne.contains("SHAPE")){ //*********************************************************************
+              if (ligne.contains("SHAPE")){ //********************************************************************* 
                 Figure * figure = new Figure();
-                liste_objet_parse.append(figure);
+                ListeGcode.append(figure);
               }
 
               if (ligne.contains("OUTPUT")){//*********************************************************************
                   QStringList Param = ligne.split(" ");
                   output *OutPut = new output(Param[1], Param[2]);
-                  liste_objet_parse.append(OutPut);
+                  ListeGcode.append(OutPut);
               }
 
               if (ligne.contains("PAUSE") && GetValue(ligne,"PAUSE",valTMP)){ //*********************************************************************
                   pause *Pause = new pause(valTMP);
-                  liste_objet_parse.append(Pause);
+                  ListeGcode.append(Pause);
               }
 
               if (ligne.contains("INPUT")){ //*********************************************************************
                   QStringList Param = ligne.split(" ");
                   input *InPut = new input(Param[1], Param[2]);
-                  liste_objet_parse.append(InPut);
+                  ListeGcode.append(InPut);
               }
            }
     fichier_gcode.close();
-    return liste_objet_parse;
-
 }
 
 QString Parser::type_check(Ligne *elt){
@@ -139,19 +149,19 @@ QString Parser::type_check(Ligne *elt){
         else return "inconnu";
 }
 
-
-void Parser::write_liste(QList<Ligne *> liste, QString name_out){
+void Parser::write_liste(QString name_out){
 
      QString filename_out = QCoreApplication::applicationDirPath() + "/" + name_out;
      QFile out(filename_out);
      QTextStream stream_out(&out);
      out.open(QIODevice::WriteOnly | QIODevice::Text);
 
-     for (int i = 0;i<liste.size();i++){
-         stream_out << liste[i]->gcode_ligne() << endl;
+     for (int i = 0;i<ListeGcode.size();i++){
+         stream_out << ListeGcode[i]->gcode_ligne() << endl;
      }
      out.close();
 }
+
 /*
 void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
     float DistanceDepuisDebut = 0.;
@@ -191,9 +201,6 @@ void Parser::insert_macro_distance2(QList<Ligne *> &liste_entre, QList<Ligne *> 
 
 
 }*/
-
-
-
 
 void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> macro, float distance_min, float distance_max){
 
@@ -318,17 +325,17 @@ void Parser::insert_macro_distance(QList<Ligne *> liste_entre, QList<Ligne *> ma
         macro.takeLast();
         }
 
-    write_liste(liste_sortie,"out.nc");//-----------------------------------------------------------
+    write_liste("out.nc");//-----------------------------------------------------------
     //qDebug() << QString::number(check_dist);
     }
 }
 
-void Parser::absolute_relative(QList<Ligne *> liste_gcode){
+void Parser::absolute_relative(){
 
     QList<Ligne*> liste_dep;
-    for(int i = 0;i<liste_gcode.size();i++){
-        if (Parser::type_check(liste_gcode[i]) == "Deplacement"){
-            liste_dep.append(liste_gcode[i]);
+    for(int i = 0;i<ListeGcode.size();i++){
+        if (Parser::type_check(ListeGcode[i]) == "Deplacement"){
+            liste_dep.append(ListeGcode[i]);
         }
     } //recupere une liste avec que les deplacements
 
@@ -360,15 +367,15 @@ void Parser::absolute_relative(QList<Ligne *> liste_gcode){
             dynamic_cast<Deplacement *>(liste_dep[i])->set_info_rel(X_rel,Y_rel);
         }
 
-        for(int i = 0;i<liste_gcode.size();i++){
-                    if (Parser::type_check(liste_gcode[i]) == "Deplacement"){
-                        liste_gcode.replace(i,liste_dep.takeFirst());
+        for(int i = 0;i<ListeGcode.size();i++){
+                    if (Parser::type_check(ListeGcode[i]) == "Deplacement"){
+                        ListeGcode.replace(i,liste_dep.takeFirst());
                     }
         }
 
 
 
-    compute_taille_figure(liste_gcode);
+    compute_taille_figure(ListeGcode);
 }
 
 void Parser::compute_taille_figure(QList<Ligne *> liste_gcode){
@@ -415,9 +422,9 @@ void Parser::clean_file(QString name){
 
 }
 
-void Parser::AjoutMacros(QList<Ligne *> liste_entre, QString name){
+void Parser::AjoutMacros(QString CorespondanceFile){
 
-    QString filename_corres = QCoreApplication::applicationDirPath() + "/" + name;
+    QString filename_corres = QCoreApplication::applicationDirPath() + "/" + CorespondanceFile;
     QFile fichier_corres(filename_corres);
     QTextStream fichier_in(&fichier_corres);
 
@@ -429,7 +436,7 @@ void Parser::AjoutMacros(QList<Ligne *> liste_entre, QString name){
 
         if(ligne.contains("Distance")){
             QStringList liste = ligne.split(" ");
-            insert_macro_distance(liste_entre,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
+            //insert_macro_distance(ListeGcode,Parser::parse_gcode(liste[4]),liste[2].toFloat(),liste[3].toFloat());
 
         }
 
