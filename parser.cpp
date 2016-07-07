@@ -80,6 +80,9 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
                   if(GetValue(ligne,"Y",valTMP))
                       Y = valTMP.toFloat();
 
+                  if(GetValue(ligne,"Z",valTMP))
+                      Z = valTMP.toFloat();
+
                   if(GetValue(ligne,"I",valTMP))
                       I = valTMP.toFloat();
 
@@ -87,7 +90,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
                       J = valTMP.toFloat();
 
                   //qDebug() << "X : " << X << " Y : " << Y << " I : " << I << " J : " << J << endl;
-                  G02 * g02 = new G02(X,Y,I,J,F);
+                  G02 * g02 = new G02(X,Y,Z,I,J,F);
                   __ListeGcode.append(g02);
               }
 
@@ -126,12 +129,15 @@ void Parser::insert_macro_at(QString FileNameMacro, int Index)
     QList<float> CoordonneeABSXYZ;
     QList<Ligne *> ListeGcodeMacro;
 
-
     QList<Ligne *>::iterator IT;
 
-    for(IT += Index; type_check(*IT) != "Deplacement" || IT != _ListeGcode.begin(); IT--);
+    IT = _ListeGcode.begin();
 
-    if(IT != _ListeGcode.begin())
+    //Recherche le dernier déplacement avant la macro pour extraire ses coordonnées
+    //afin de repositionner la tête au même endroit à la fin de la macro
+    for(IT += (Index-1); !(!(IT == _ListeGcode.begin()) && !(type_check(*IT) != "Deplacement")); IT--);
+
+    if(IT != _ListeGcode.begin())//Si déplacement trouvé, extraction de ses coordonnées
     {
         CoordonneeABSXYZ = dynamic_cast<Deplacement*>(*IT)->get_info_abs();
         X = CoordonneeABSXYZ[0];
@@ -140,12 +146,17 @@ void Parser::insert_macro_at(QString FileNameMacro, int Index)
         F = dynamic_cast<Deplacement*>(*IT)->getF();
     }
 
+    //"Parsage" de la macro, initialisation des paramètres avec les paramère en amont de la macro
     parse_gcode_file(FileNameMacro,ListeGcodeMacro,X,Y,Z,F);
 
+    //Création de la macro distance
     macro * Macro = new macro("Distance",ListeGcodeMacro);
 
-    _ListeGcode.insert(Index,Macro);
+    //Ajout des positions de retour
+    Macro->SetPositionRetour(X,Y,Z);
 
+    //Insertion de la macro dans la liste de Gcode au bon index
+    _ListeGcode.insert(Index,Macro);
 }
 
 //*********************************************************
@@ -153,27 +164,59 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
 {
     float TailleDepuisDerniereOccurrence = 0;
     int Index = 0;
-
     QList<Ligne *>::iterator IT;
 
-    for(IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++, Index++)
+    for(IT = _ListeGcode.begin(), Index = 0; IT != _ListeGcode.end(); IT++, Index++) //Boucle sur toute la liste de Gcode
     {
-        if(type_check(*IT) != "Figure")
+        if(type_check(*IT) == "Figure")//Sifigure
         {
-           if(TailleDepuisDerniereOccurrence >= distance_min)
+           if(TailleDepuisDerniereOccurrence >= distance_min) //Si avant une figure on peut insérer une macro
            {
-               insert_macro_at(FileNameMacro, Index);
+               insert_macro_at(FileNameMacro, Index+1);
+               IT = std::next(_ListeGcode.begin(),Index);
                TailleDepuisDerniereOccurrence = 0;
            }
         }
-
-        if(type_check(*IT) != "Deplacement")
+        else if(type_check(*IT) == "Deplacement")//Si déplacement
         {
             TailleDepuisDerniereOccurrence += dynamic_cast<Deplacement*>(*IT)->get_distance();
-            if(TailleDepuisDerniereOccurrence >= distance_max)
+
+            if(TailleDepuisDerniereOccurrence > distance_max)//Si obligé d'insérer macro dans une figure
             {
-                insert_macro_at(FileNameMacro, Index);
-                TailleDepuisDerniereOccurrence = 0;
+
+                if(dynamic_cast<Deplacement*>(*(IT))->get_distance() > distance_max)//Si une ligne de Gcode est plus long que la distance max de la macro
+                {
+                    if(((IT-1) != _ListeGcode.begin() && type_check(*(IT-1)) != "Macro") || ((IT-1) != _ListeGcode.begin() && type_check(*(IT-1)) == "Macro"  && dynamic_cast<macro*>(*(IT-1))->_name != "Distance"))
+                    {
+                        //Si pas de macro identique précédent, ajout de 2 macros (une au début du long trajet
+                        //et une à la fin du long trajet
+                        insert_macro_at(FileNameMacro, Index);
+                        IT = std::next(_ListeGcode.begin(),Index);
+                        Index += 2;
+                        IT += 2;
+                        insert_macro_at(FileNameMacro, Index);
+                        IT = std::next(_ListeGcode.begin(),Index);
+                        TailleDepuisDerniereOccurrence = 0;
+                    }
+                    else
+                    {
+                        //Si une macro identique précède la ligne on ajoute
+                        //Cette même macro seulement après la ligne (ligne encadré par deux macros)
+                        Index++;
+                        IT++;
+                        insert_macro_at(FileNameMacro, Index);
+                        IT = std::next(_ListeGcode.begin(),Index);
+                        TailleDepuisDerniereOccurrence = 0;
+                    }
+                }
+                else
+                {
+                    //Insertion macro classique :
+                    //La distance max est atteinte par accumulation de plusieurs déplacements
+                    insert_macro_at(FileNameMacro, Index);
+                    IT = std::next(_ListeGcode.begin(),Index);
+                    TailleDepuisDerniereOccurrence = 0;
+                }
             }
         }
     }
@@ -335,6 +378,7 @@ return 0;
 QString Parser::type_check(Ligne *elt){
     if (dynamic_cast<Deplacement *>(elt)){return "Deplacement";}
     if (dynamic_cast<Figure *>(elt)){return "Figure";}
+    if (dynamic_cast<macro *>(elt)){return "Macro";}
         else return "inconnu";
 }
 

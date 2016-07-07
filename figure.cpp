@@ -4,7 +4,7 @@
 QString Figure::gcode_ligne(){
     //qDebug() << "(* Nouvelle figure *)";
 
-    return  "\n (* Nouvelle figure *)";
+    return  "\n(* ---------------- Nouvelle figure ---------------- *)";
 
 }
 
