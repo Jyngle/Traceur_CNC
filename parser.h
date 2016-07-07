@@ -28,7 +28,7 @@ protected:
 
     void insert_macro_distance(QString FileNameMacro, float distance_min, float distance_max);
 
-    void insert_macro_at(QString FileNameMacro, int Index);
+    void insert_macro_at(QString name,QString FileNameMacro, int Index);
     void absolute_relative();
     void compute_taille_figure(QList<Ligne *> liste_gcode);
     void clean_file(QString name);

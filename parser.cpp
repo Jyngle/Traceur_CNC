@@ -122,7 +122,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
 //*********************************************************
 
 
-void Parser::insert_macro_at(QString FileNameMacro, int Index)
+void Parser::insert_macro_at(QString name, QString FileNameMacro, int Index)
 {
     float X = 0, Y = 0, Z = 0;
     int F = 0;
@@ -149,8 +149,8 @@ void Parser::insert_macro_at(QString FileNameMacro, int Index)
     //"Parsage" de la macro, initialisation des paramètres avec les paramère en amont de la macro
     parse_gcode_file(FileNameMacro,ListeGcodeMacro,X,Y,Z,F);
 
-    //Création de la macro distance
-    macro * Macro = new macro("Distance",ListeGcodeMacro);
+    //Création de la macro
+    macro * Macro = new macro(name,ListeGcodeMacro);
 
     //Ajout des positions de retour
     Macro->SetPositionRetour(X,Y,Z);
@@ -172,7 +172,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
         {
            if(TailleDepuisDerniereOccurrence >= distance_min) //Si avant une figure on peut insérer une macro
            {
-               insert_macro_at(FileNameMacro, Index+1);
+               insert_macro_at("Distance", FileNameMacro, Index+1);
                IT = std::next(_ListeGcode.begin(),Index);
                TailleDepuisDerniereOccurrence = 0;
            }
@@ -190,11 +190,11 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
                     {
                         //Si pas de macro identique précédent, ajout de 2 macros (une au début du long trajet
                         //et une à la fin du long trajet
-                        insert_macro_at(FileNameMacro, Index);
+                        insert_macro_at("Distance",FileNameMacro, Index);
                         IT = std::next(_ListeGcode.begin(),Index);
                         Index += 2;
                         IT += 2;
-                        insert_macro_at(FileNameMacro, Index);
+                        insert_macro_at("Distance",FileNameMacro, Index);
                         IT = std::next(_ListeGcode.begin(),Index);
                         TailleDepuisDerniereOccurrence = 0;
                     }
@@ -204,7 +204,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
                         //Cette même macro seulement après la ligne (ligne encadré par deux macros)
                         Index++;
                         IT++;
-                        insert_macro_at(FileNameMacro, Index);
+                        insert_macro_at("Distance",FileNameMacro, Index);
                         IT = std::next(_ListeGcode.begin(),Index);
                         TailleDepuisDerniereOccurrence = 0;
                     }
@@ -213,7 +213,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
                 {
                     //Insertion macro classique :
                     //La distance max est atteinte par accumulation de plusieurs déplacements
-                    insert_macro_at(FileNameMacro, Index);
+                    insert_macro_at("Distance",FileNameMacro, Index);
                     IT = std::next(_ListeGcode.begin(),Index);
                     TailleDepuisDerniereOccurrence = 0;
                 }
