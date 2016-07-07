@@ -4,6 +4,7 @@
 #include "g02.h"
 #include "ligne.h"
 #include "figure.h"
+#include "finprogramme.h"
 #include <QFile>
 #include <QDebug>
 #include <QCoreApplication>
@@ -15,6 +16,7 @@ void Parser::ReadInputFile(QString FileNameIN)
 {
     clean_file(FileNameIN);
     parse_gcode_file("gcode.nc",_ListeGcode, 0, 0, 0, 0);
+    //_ListeGcode.append(new FinProgramme());
     absolute_relative();
 }
 
@@ -117,6 +119,18 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
               }
            }
     fichier_gcode.close();
+}
+
+
+
+void Parser::insert_macro_debut(QString FileNameMacro)
+{
+    insert_macro_at("MacroDebut",FileNameMacro,0);
+}
+
+void Parser::insert_macro_fin(QString FileNameMacro)
+{
+    insert_macro_at("MacroFin",FileNameMacro,_ListeGcode.size()-1);
 }
 
 //*********************************************************
@@ -329,12 +343,25 @@ void Parser::AjoutMacros(QString FileNameCorespondance){
     while (!fichier_in.atEnd()){
         ligne = fichier_in.readLine();
 
-        if(ligne.contains("Distance")){
+        if(ligne.contains("Distance"))
+        {
             QStringList liste = ligne.split(" ");        
             insert_macro_distance(liste[4],liste[2].toFloat(),liste[3].toFloat());
         }
+        else if(ligne.contains("Début"))
+        {
+             QStringList liste = ligne.split(" ");
+             insert_macro_debut(liste[2]);
+        }
+        else if(ligne.contains("Fin"))
+        {
+             QStringList liste = ligne.split(" ");
+             insert_macro_fin(liste[2]);
+        }
 
     }
+
+
 
 }
 
