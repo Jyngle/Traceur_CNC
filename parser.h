@@ -26,10 +26,28 @@ protected:
 
     void parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F);
 
+
+
+
+
+
+
+
+
+
+
     void insert_macro_distance(QString FileNameMacro, float distance_min, float distance_max);
-    void insert_macro_debut(QString FileNameMacro);
-    void insert_macro_fin(QString FileNameMacro);
+
+
+      void insert_macro_debut(QString FileNameMacro);
+
+      void insert_macro_fin(QString FileNameMacro);
+
     void insert_macro_at(QString name,QString FileNameMacro, int Index);
+
+
+
+
     void absolute_relative();
     void compute_taille_figure(QList<Ligne *> liste_gcode);
     void clean_file(QString name);

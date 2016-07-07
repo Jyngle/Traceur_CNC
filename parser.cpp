@@ -5,6 +5,7 @@
 #include "ligne.h"
 #include "figure.h"
 #include "finprogramme.h"
+
 #include <QFile>
 #include <QDebug>
 #include <QCoreApplication>
@@ -16,7 +17,8 @@ void Parser::ReadInputFile(QString FileNameIN)
 {
     clean_file(FileNameIN);
     parse_gcode_file("gcode.nc",_ListeGcode, 0, 0, 0, 0);
-    //_ListeGcode.append(new FinProgramme());
+
+    _ListeGcode.append(new FinProgramme());
     absolute_relative();
 }
 
@@ -147,17 +149,20 @@ void Parser::insert_macro_at(QString name, QString FileNameMacro, int Index)
 
     IT = _ListeGcode.begin();
 
-    //Recherche le dernier déplacement avant la macro pour extraire ses coordonnées
-    //afin de repositionner la tête au même endroit à la fin de la macro
-    for(IT += (Index-1); !(!(IT == _ListeGcode.begin()) && !(type_check(*IT) != "Deplacement")); IT--);
-
-    if(IT != _ListeGcode.begin())//Si déplacement trouvé, extraction de ses coordonnées
+    if(Index != 0)
     {
-        CoordonneeABSXYZ = dynamic_cast<Deplacement*>(*IT)->get_info_abs();
-        X = CoordonneeABSXYZ[0];
-        Y = CoordonneeABSXYZ[1];
-        Z = CoordonneeABSXYZ[2];
-        F = dynamic_cast<Deplacement*>(*IT)->getF();
+        //Recherche le dernier déplacement avant la macro pour extraire ses coordonnées
+        //afin de repositionner la tête au même endroit à la fin de la macro
+        for(IT += (Index-1);IT != _ListeGcode.begin() && type_check(*IT) != "Deplacement" ; IT--);
+
+        if(IT != _ListeGcode.begin())//Si déplacement trouvé, extraction de ses coordonnées
+        {
+            CoordonneeABSXYZ = dynamic_cast<Deplacement*>(*IT)->get_info_abs();
+            X = CoordonneeABSXYZ[0];
+            Y = CoordonneeABSXYZ[1];
+            Z = CoordonneeABSXYZ[2];
+            F = dynamic_cast<Deplacement*>(*IT)->getF();
+        }
     }
 
     //"Parsage" de la macro, initialisation des paramètres avec les paramère en amont de la macro
@@ -186,7 +191,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
         {
            if(TailleDepuisDerniereOccurrence >= distance_min) //Si avant une figure on peut insérer une macro
            {
-               insert_macro_at("Distance", FileNameMacro, Index+1);
+               insert_macro_at("Distance",FileNameMacro, Index+1);
                IT = std::next(_ListeGcode.begin(),Index);
                TailleDepuisDerniereOccurrence = 0;
            }
@@ -200,7 +205,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
 
                 if(dynamic_cast<Deplacement*>(*(IT))->get_distance() > distance_max)//Si une ligne de Gcode est plus long que la distance max de la macro
                 {
-                    if(((IT-1) != _ListeGcode.begin() && type_check(*(IT-1)) != "Macro") || ((IT-1) != _ListeGcode.begin() && type_check(*(IT-1)) == "Macro"  && dynamic_cast<macro*>(*(IT-1))->_name != "Distance"))
+                    if((IT != _ListeGcode.begin() && type_check(*(IT-1)) != "Macro") || ((IT-1) != _ListeGcode.begin() && type_check(*(IT-1)) == "Macro"  && dynamic_cast<macro*>(*(IT-1))->_name != "Distance"))
                     {
                         //Si pas de macro identique précédent, ajout de 2 macros (une au début du long trajet
                         //et une à la fin du long trajet

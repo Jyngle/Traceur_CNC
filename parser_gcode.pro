@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     output.cpp \
     pause.cpp \
     input.cpp \
-    macro.cpp
+    macro.cpp \
+    finprogramme.cpp
 
 HEADERS += \
     parser.h \
@@ -31,4 +32,5 @@ HEADERS += \
     output.h \
     pause.h \
     input.h \
-    macro.h
+    macro.h \
+    finprogramme.h
