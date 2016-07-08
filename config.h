@@ -2,13 +2,7 @@
 #define CONFIG_H
 
 
-
-
-
-
 #define PATH_MACROS "/macros/"
-
-
 
 #define PARAM_GRBL "/param.txt"
 #define INPUT_GCODE "/source.nc"

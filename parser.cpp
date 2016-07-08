@@ -8,6 +8,7 @@
 #include "config.h"
 
 #include <string.h>
+#include <QString>
 #include <QFile>
 #include <QDebug>
 #include <QCoreApplication>
@@ -433,9 +434,6 @@ void Parser::AjoutMacros(){
         }
 
     }
-
-
-
 }
 
 void Parser::WriteOutputFile(){
@@ -453,26 +451,24 @@ void Parser::WriteOutputFile(){
 
 int Parser::GetValue(QString ligne, QString Key, QString &Value)
 {
-    QStringList Param = ligne.split(" ");
-
     if(!ligne.contains(Key)) {return 0;}
-    int j=0;
 
-    for(int i=0; i<Param.size(); i++)
-    {
-        if(Param[i] == Key)// Si la clef est trouvée
-        {
-            for(j=0; i + 1 + j <= Param.size() && Param[i+1+j] == ""; j++);//supression des espaces après la clef
+    ligne = ligne.simplified();
+    ligne = ligne.replace(" ","");
 
-            if(i+1+j > Param.size()+1) //Pas de valeur trouvées
-                return 0;
-            else
-                Value = Param[i+1+j];//Récupération de la valeur
+    QStringList Param = ligne.split(Key);
+    int i;
+    const char* c = Param[1].toStdString().c_str();
 
-            return 1; //test
-        }
-    }
-return 0;
+    for(i = 0; (c[i] >= 48 && c[i] <= 57) || (c[i] == 46) || (c[i] == 45); i++);
+
+    QString tmp = QString(c);
+    Value = tmp.mid(0, i);
+    if(Value.isEmpty())
+        return 0;
+
+
+return 1;
 }
 
 QString Parser::type_check(Ligne *elt){
