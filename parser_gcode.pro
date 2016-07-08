@@ -33,5 +33,4 @@ HEADERS += \
     pause.h \
     input.h \
     macro.h \
-    finprogramme.h \
-    errorcode.h
+    finprogramme.h

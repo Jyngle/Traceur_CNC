@@ -40,11 +40,9 @@ void Parser::check_depacement()
             position = dynamic_cast<Deplacement *>(*IT)->get_info_abs();
 
             if(position[0]>lim.X || position[1] > lim.Y || position[2] > lim.Z)
-                throw QString("Une ou plusieurs limite(s) de la machine est(sont) dépassée(s) !");
+                throw QString("Une ou plusieurs limite(s) de la machine est(sont) dépassée(s)");
         }
-
     }
-
 }
 
 void Parser::read_ardware_limitFile(Position& abs)
@@ -58,7 +56,7 @@ void Parser::read_ardware_limitFile(Position& abs)
     if(Fichier_Param.open(QIODevice::ReadOnly |QIODevice::Text))
         qDebug() << "Fichier param ouvert !" << endl;
     else
-        throw QString("Impossible d'ouvrir le fichier de parametrage de la machine !");
+        throw QString("Impossible d'ouvrir le fichier de parametrage de la machine");
 
     while (!stream_fichier_param.atEnd())
     {
@@ -103,10 +101,11 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
     if(fichier_gcode.open(QIODevice::ReadOnly |QIODevice::Text))
         qDebug() << "Fichier Gcode ouvert !" << endl;
     else
-        qDebug() << "Probleme a la lecture du fichier" << endl;
+    {
+        throw QString("Impossible d'ouvrir le fichier : " + name);
+        qDebug() << "Impossible d'ouvrir le fichier : " << name << endl;
+    }
 
-    //int F = 0;//Vitesse par default
-    //float X = 0, Y = 0, Z = 0;
     QString valTMP;
 
     while (!fichier_in.atEnd())
