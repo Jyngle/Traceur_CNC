@@ -12,9 +12,19 @@ int main(int argc, char *argv[])
 
     Parser GParser;
 
-    GParser.ReadInputFile("source.nc");
-    GParser.AjoutMacros("correspondance.txt");
-    GParser.WriteOutputFile("out.nc");
+    try
+    {
+        GParser.ReadInputFile("source.nc");
+        GParser.AjoutMacros("correspondance.txt");
+        GParser.WriteOutputFile("out.nc");
+        GParser.check_depacement();
+    }
+    catch(QString const& chaine)
+    {
+        qDebug() << chaine << endl;
+        return 1;
+    }
+
 
     return 0;
 }

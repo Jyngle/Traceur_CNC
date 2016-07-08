@@ -25,6 +25,74 @@ void Parser::ReadInputFile(QString FileNameIN)
 
 
 
+void Parser::check_depacement()
+{
+    Position lim;
+    read_ardware_limitFile(lim);
+
+    QList<float> position;
+    QList<Ligne *>::iterator IT;
+
+    for(IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
+    {
+        if(type_check(*IT) == "Deplacement")
+        {
+            position = dynamic_cast<Deplacement *>(*IT)->get_info_abs();
+
+            if(position[0]>lim.X || position[1] > lim.Y || position[2] > lim.Z)
+                throw QString("Une ou plusieurs limite(s) de la machine est(sont) dépassée(s) !");
+        }
+
+    }
+
+}
+
+void Parser::read_ardware_limitFile(Position& abs)
+{
+    QString filename = QCoreApplication::applicationDirPath() + "/" + FILE_PARAM_GRBL;
+    QFile Fichier_Param(filename);
+    QTextStream stream_fichier_param(&Fichier_Param);
+    bool x = false,y = false,z = false;
+    QStringList Param;
+
+    if(Fichier_Param.open(QIODevice::ReadOnly |QIODevice::Text))
+        qDebug() << "Fichier param ouvert !" << endl;
+    else
+        throw QString("Impossible d'ouvrir le fichier de parametrage de la machine !");
+
+    while (!stream_fichier_param.atEnd())
+    {
+        QString ligne = stream_fichier_param.readLine();
+        if (ligne.contains("$130"))
+        {
+            Param = ligne.split("=");
+            Param = Param[1].split(" ");
+            abs.X = Param[0].toFloat();
+            x = true;
+        }
+        if (ligne.contains("$131"))
+        {
+            Param = ligne.split("=");
+            Param = Param[1].split(" ");
+            abs.Y = Param[0].toFloat();
+            y = true;
+        }
+        if (ligne.contains("$132"))
+        {
+            Param = ligne.split("=");
+            Param = Param[1].split(" ");
+            abs.Z = Param[0].toFloat();
+            z = true;
+        }
+    }
+
+    Fichier_Param.close();
+
+    if(!(x && y && z))
+        throw QString("Dimentions machine vide, introuvables ou incomplètes !");
+
+}
+
 void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F)
 {
 
@@ -123,8 +191,6 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
     fichier_gcode.close();
 }
 
-
-
 void Parser::insert_macro_debut(QString FileNameMacro)
 {
     insert_macro_at("MacroDebut",FileNameMacro,0);
@@ -134,9 +200,6 @@ void Parser::insert_macro_fin(QString FileNameMacro)
 {
     insert_macro_at("MacroFin",FileNameMacro,_ListeGcode.size()-1);
 }
-
-//*********************************************************
-
 
 void Parser::insert_macro_at(QString name, QString FileNameMacro, int Index)
 {
@@ -178,7 +241,6 @@ void Parser::insert_macro_at(QString name, QString FileNameMacro, int Index)
     _ListeGcode.insert(Index,Macro);
 }
 
-//*********************************************************
 void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, float distance_max)
 {
     float TailleDepuisDerniereOccurrence = 0;
@@ -240,9 +302,6 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
         }
     }
 }
-//*********************************************************
-
-//*********************************************************
 
 void Parser::absolute_relative(){
 

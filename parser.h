@@ -7,6 +7,9 @@
 #include "pause.h"
 #include "input.h"
 #include "macro.h"
+#include "errorcode.h"
+
+#define FILE_PARAM_GRBL "param.txt"
 
 
 class Parser
@@ -17,36 +20,29 @@ public:
     void ReadInputFile(QString FileNameIN);
     void WriteOutputFile(QString FileNameOUT);
     void AjoutMacros(QString FileNameCorespondance);
-
+    void check_depacement();
 
 protected:
-
+    struct Position{
+        float X;
+        float Y;
+        float Z;
+        int F;
+    };
 
     QList<Ligne *> _ListeGcode;
 
     void parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F);
 
-
-
-
-
-
-
-
-
-
-
     void insert_macro_distance(QString FileNameMacro, float distance_min, float distance_max);
 
+    void insert_macro_debut(QString FileNameMacro);
 
-      void insert_macro_debut(QString FileNameMacro);
-
-      void insert_macro_fin(QString FileNameMacro);
+    void insert_macro_fin(QString FileNameMacro);
 
     void insert_macro_at(QString name,QString FileNameMacro, int Index);
 
-
-
+    void read_ardware_limitFile(Position& abs);
 
     void absolute_relative();
     void compute_taille_figure(QList<Ligne *> liste_gcode);
