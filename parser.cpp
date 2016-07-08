@@ -5,25 +5,23 @@
 #include "ligne.h"
 #include "figure.h"
 #include "finprogramme.h"
+#include "config.h"
 
+#include <string.h>
 #include <QFile>
 #include <QDebug>
 #include <QCoreApplication>
 #include <QThread>
 
 
-
-void Parser::ReadInputFile(QString FileNameIN)
+void Parser::ReadInputFile()
 {
-    clean_file(FileNameIN);
-    parse_gcode_file("gcode.nc",_ListeGcode, 0, 0, 0, 0);
+    clean_file();
+    parse_gcode_file(INPUT_GCODE,_ListeGcode, 0, 0, 0, 0);
 
     _ListeGcode.append(new FinProgramme());
     absolute_relative();
 }
-
-
-
 
 void Parser::check_depacement()
 {
@@ -47,7 +45,7 @@ void Parser::check_depacement()
 
 void Parser::read_ardware_limitFile(Position& abs)
 {
-    QString filename = QCoreApplication::applicationDirPath() + "/" + FILE_PARAM_GRBL;
+    QString filename = QCoreApplication::applicationDirPath() + PARAM_GRBL;
     QFile Fichier_Param(filename);
     QTextStream stream_fichier_param(&Fichier_Param);
     bool x = false,y = false,z = false;
@@ -87,14 +85,14 @@ void Parser::read_ardware_limitFile(Position& abs)
     Fichier_Param.close();
 
     if(!(x && y && z))
-        throw QString("Dimentions machine vide, introuvables ou incomplètes !");
+        throw QString("Dimentions machine non renseignees, introuvables ou incomplètes");
 
 }
 
 void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F)
 {
 
-    QString filename = QCoreApplication::applicationDirPath() + "/" + name;
+    QString filename = QCoreApplication::applicationDirPath() + name;
     QFile fichier_gcode(filename);
     QTextStream fichier_in(&fichier_gcode);
 
@@ -228,7 +226,7 @@ void Parser::insert_macro_at(QString name, QString FileNameMacro, int Index)
     }
 
     //"Parsage" de la macro, initialisation des paramètres avec les paramère en amont de la macro
-    parse_gcode_file(FileNameMacro,ListeGcodeMacro,X,Y,Z,F);
+    parse_gcode_file(PATH_MACROS + FileNameMacro,ListeGcodeMacro,X,Y,Z,F);
 
     //Création de la macro
     macro * Macro = new macro(name,ListeGcodeMacro);
@@ -369,34 +367,46 @@ void Parser::compute_taille_figure(QList<Ligne *> liste_gcode){
             dynamic_cast<Figure *>(liste_gcode[indice])->set_taille(taille_fi);
 }
 
-void Parser::clean_file(QString name){
+void Parser::clean_file(){
 
     QList<QString> liste;
-    QString filename_gcode_source = QCoreApplication::applicationDirPath() + "/" + name;
+    QString filename_gcode_source = QCoreApplication::applicationDirPath() + INPUT_GCODE;
     QFile fichier_gcode_source(filename_gcode_source);
-    QTextStream fichier_in(&fichier_gcode_source);
+     QTextStream fichier_in(&fichier_gcode_source);
     fichier_gcode_source.open(QIODevice::ReadWrite | QIODevice::Text);
 
-    QString filename_out = QCoreApplication::applicationDirPath() + "/gcode.nc";
+    /*QString filename_out = QCoreApplication::applicationDirPath() + GCODE_CLEANED;
     QFile out(filename_out);
     QTextStream stream_out(&out);
-    out.open(QIODevice::WriteOnly | QIODevice::Text);
+    out.open(QIODevice::WriteOnly | QIODevice::Text);*/
 
+    if(fichier_in.atEnd())
+    {
+
+        throw QString("Fichier Gcode vide (" + QString(INPUT_GCODE) +")");
+    }
 
     while (!fichier_in.atEnd()){
         liste.append(fichier_in.readLine());
     }
-    fichier_gcode_source.close();
+
+    fichier_gcode_source.resize(0);
 
     for(int i = 10;i<liste.size();i++){
-        stream_out << liste[i] << endl;
+        fichier_in << liste[i] << endl;
     }
+
+    fichier_gcode_source.close();
+
+    //for(int i = 10;i<liste.size();i++){
+    //    stream_out << liste[i] << endl;
+    //}
 
 }
 
-void Parser::AjoutMacros(QString FileNameCorespondance){
+void Parser::AjoutMacros(){
 
-    QString filename_corres = QCoreApplication::applicationDirPath() + "/" + FileNameCorespondance;
+    QString filename_corres = QCoreApplication::applicationDirPath() + CORRESPONDANCE;
     QFile fichier_corres(filename_corres);
     QTextStream fichier_in(&fichier_corres);
 
@@ -428,9 +438,9 @@ void Parser::AjoutMacros(QString FileNameCorespondance){
 
 }
 
-void Parser::WriteOutputFile(QString FileNameOUT){
+void Parser::WriteOutputFile(){
 
-     QString filename_out = QCoreApplication::applicationDirPath() + "/" + FileNameOUT;
+     QString filename_out = QCoreApplication::applicationDirPath() + OUTPUT_GCODE;
      QFile out(filename_out);
      QTextStream stream_out(&out);
      out.open(QIODevice::WriteOnly | QIODevice::Text);

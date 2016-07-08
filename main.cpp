@@ -8,6 +8,7 @@
 #include "figure.h"
 
 
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -18,13 +19,13 @@ int main(int argc, char *argv[])
 
     try
     {
-        GParser.ReadInputFile("source.nc");
-        GParser.AjoutMacros("correspondance.txt");
+        GParser.ReadInputFile();
+        GParser.AjoutMacros();
         GParser.check_depacement();
     }
     catch(QString const& chaine)
     {
-        QFile errFile(QCoreApplication::applicationDirPath() + "/" + "Err.txt");
+        QFile errFile(QCoreApplication::applicationDirPath() + ERROR);
         QTextStream stream_err(&errFile);
         errFile.open(QIODevice::WriteOnly | QIODevice::Text);
 
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    GParser.WriteOutputFile("out.nc");
+    GParser.WriteOutputFile();
 
     return 0;
 }

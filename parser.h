@@ -7,9 +7,9 @@
 #include "pause.h"
 #include "input.h"
 #include "macro.h"
-#include "errorcode.h"
+#include "config.h"
 
-#define FILE_PARAM_GRBL "param.txt"
+
 
 
 class Parser
@@ -17,9 +17,9 @@ class Parser
 
 public:
 
-    void ReadInputFile(QString FileNameIN);
-    void WriteOutputFile(QString FileNameOUT);
-    void AjoutMacros(QString FileNameCorespondance);
+    void ReadInputFile();
+    void WriteOutputFile();
+    void AjoutMacros();
     void check_depacement();
 
 protected:
@@ -46,7 +46,7 @@ protected:
 
     void absolute_relative();
     void compute_taille_figure(QList<Ligne *> liste_gcode);
-    void clean_file(QString name);
+    void clean_file();
     int GetValue(QString ligne, QString Key, QString &Value);
     QString type_check(Ligne *elt);
 
