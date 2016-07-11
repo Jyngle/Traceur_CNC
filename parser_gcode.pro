@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     pause.cpp \
     input.cpp \
     macro.cpp \
-    finprogramme.cpp
+    finprogramme.cpp \
+    deplacement.cpp
 
 HEADERS += \
     parser.h \

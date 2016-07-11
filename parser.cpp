@@ -44,6 +44,17 @@ void Parser::check_depacement()
     }
 }
 
+
+int Parser::ComputeTime()
+{
+   float time = 0;
+
+   for(QList<Ligne *>::iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
+        if(type_check(*IT) == "Deplacement")
+            time += dynamic_cast<Deplacement *>(*IT)->get_time();
+   return (int)time;
+}
+
 void Parser::read_ardware_limitFile(Position& abs)
 {
     QString filename = QCoreApplication::applicationDirPath() + PARAM_GRBL;
@@ -303,7 +314,41 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
 
 void Parser::absolute_relative(){
 
-    QList<Ligne*> liste_dep;
+
+    for(QList<Ligne *>::Iterator IT = _ListeGcode.begin(); IT != _ListeGcode.begin(); IT++)
+    {
+        struct {
+            float X, Y, Z;
+        }CoordonneesABSprecedente;
+
+        if(type_check(*IT) != "Deplacement")
+            continue;
+
+        CoordonneesABSprecedente.X = 0;
+        CoordonneesABSprecedente.Y = 0;
+        CoordonneesABSprecedente. Z = 0;
+
+        for(QList<Ligne *>::Iterator ITp = (IT-1); ITp != _ListeGcode.begin(); IT--)
+        {
+            if(type_check(*ITp) == "Deplacement")
+            {
+                CoordonneesABSprecedente.X = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[0];
+                CoordonneesABSprecedente.Y = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[1];
+                CoordonneesABSprecedente.Y = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[2];
+                break;
+            }
+        }
+
+
+        dynamic_cast<Deplacement *>(*IT)->set_info_rel(CoordonneesABSprecedente.X - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[0],
+                                                       CoordonneesABSprecedente.Y - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[1],
+                                                       CoordonneesABSprecedente.Z - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[2]);
+
+
+
+    }
+
+   /* QList<Ligne*> liste_dep;
     for(int i = 0;i<_ListeGcode.size();i++){
         if (Parser::type_check(_ListeGcode[i]) == "Deplacement"){
             liste_dep.append(_ListeGcode[i]);
@@ -342,7 +387,7 @@ void Parser::absolute_relative(){
                     if (Parser::type_check(_ListeGcode[i]) == "Deplacement"){
                         _ListeGcode.replace(i,liste_dep.takeFirst());
                     }
-        }
+        }*/
 
 
 

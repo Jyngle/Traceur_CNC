@@ -10,8 +10,26 @@ G02::G02(float _X, float _Y, float _Z, float _I, float _J, float _F){
     I = _I;
     J = _J;
     F = _F;
+    _dist_acceleration = (_acceleration/2) * powf((F/60)/_acceleration, 2);
 }
 
+float G02::get_time()
+{
+    if(X_rel > 0 && Y_rel > 0)
+    {
+        float dist = sqrt(pow(X_rel,2) + pow(Y_rel,2));
+
+        if(_dist_acceleration_g00 * 2 > dist) //Si deux phases : accélération puis décélération
+        {
+            return (sqrt(dist/_acceleration)) * 2;
+        }
+        else//Si trois phases : accélération, maintien, décélération
+        {
+            return (sqrt((2*_dist_acceleration_g00)/_acceleration)) * 2 + ((dist - _dist_acceleration_g00)/F);
+        }
+    }
+    return 0;
+}
 QList<float> G02::get_info_abs(){
     QList<float> liste;
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "I = " << QString::number(I) << "J = " << QString::number(J) << "F = " << QString::number(F);
@@ -29,21 +47,9 @@ QList<float> G02::get_info_rel(){
     return liste;
 }
 
-void G02::set_info_abs(float _X, float _Y){
 
-    X_abs = _X;
-    Y_abs = _Y;
-}
 
-void G02::set_info_rel(float _X, float _Y){
 
-    X_rel = _X;
-    Y_rel = _Y;
-}
-
-float G02::get_Z(){
-    return Z_abs;
-}
 
 
 float G02::get_distance(){

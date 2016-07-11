@@ -21,6 +21,7 @@ public:
     void WriteOutputFile();
     void AjoutMacros();
     void check_depacement();
+    int ComputeTime();
 
 protected:
     struct Position{
@@ -43,6 +44,7 @@ protected:
     void insert_macro_at(QString name,QString FileNameMacro, int Index);
 
     void read_ardware_limitFile(Position& abs);
+
 
     void absolute_relative();
     void compute_taille_figure(QList<Ligne *> liste_gcode);
