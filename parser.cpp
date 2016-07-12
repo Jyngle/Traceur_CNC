@@ -24,6 +24,52 @@ void Parser::ReadInputFile()
     absolute_relative();
 }
 
+int Parser::ComputeTime()
+{
+    /*
+    float Deplacement::_dist_acceleration_XY_g00 = 555.555;
+        float Deplacement::_acceleration_XY = 100;
+    float Deplacement::_vitesse_XY_g00 = 333.33;
+
+        float Deplacement::_vitesse_Z_g00;  // mm/s
+        float Deplacement::_dist_acceleration_Z_g00;  // mm
+        float Deplacement::_acceleration_Z; // mm/s²*/
+
+   QString strVitesseG00X,strVitesseG00Y,strVitesseG00Z,strAccZ, strAccX, strAccY;
+   float VitesseG00X,VitesseG00Y,VitesseG00Z,AccX,AccY,AccZ;
+
+   if(read_param_file("$110",strVitesseG00X)    ||
+      read_param_file("$111",strVitesseG00Y)    ||
+      read_param_file("$112",strVitesseG00Z)    ||
+      read_param_file("$120",strAccX)           ||
+      read_param_file("$121",strAccY)           ||
+      read_param_file("$122",strAccZ))
+   {
+       throw QString("Impossible de lire les paramètres de vitesse et d'acélération de la machine");
+   }
+
+   VitesseG00X = strVitesseG00X.toFloat()/60;
+   VitesseG00Y = strVitesseG00Y.toFloat()/60;
+   VitesseG00Z = strVitesseG00Z.toFloat()/60;
+   AccX = strAccX.toFloat();
+   AccY = strAccY.toFloat();
+   AccZ = strAccZ.toFloat();
+
+   Deplacement::_vitesse_XY_g00 = (VitesseG00X + VitesseG00Y) / 2;//Grosse aproximation
+   Deplacement::_vitesse_Z_g00 = VitesseG00Z;
+   Deplacement::_dist_acceleration_Z_g00 = (AccZ/2)*powf(VitesseG00Z/AccZ,2);
+   Deplacement::_acceleration_XY = (AccX + AccY) / 2; //Grosse aproximation
+   Deplacement::_acceleration_Z = AccZ;
+
+
+   float time = 0;
+
+   for(QList<Ligne *>::iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
+        if(type_check(*IT) == "Deplacement")
+            time += dynamic_cast<Deplacement *>(*IT)->get_time();
+   return (int)time;
+}
+
 void Parser::check_depacement()
 {
     Position lim;
@@ -44,15 +90,34 @@ void Parser::check_depacement()
     }
 }
 
-
-int Parser::ComputeTime()
+int Parser::read_param_file(QString key, QString & value)
 {
-   float time = 0;
+    QString filename = QCoreApplication::applicationDirPath() + PARAM_GRBL;
+    QFile Fichier_Param(filename);
+    QTextStream stream_fichier_param(&Fichier_Param);
+    QStringList Param;
 
-   for(QList<Ligne *>::iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
-        if(type_check(*IT) == "Deplacement")
-            time += dynamic_cast<Deplacement *>(*IT)->get_time();
-   return (int)time;
+    if(Fichier_Param.open(QIODevice::ReadOnly |QIODevice::Text))
+        qDebug() << "Fichier param ouvert !" << endl;
+    else
+        throw QString("Impossible d'ouvrir le fichier de parametrage de la machine");
+
+    while (!stream_fichier_param.atEnd())
+    {
+        QString ligne = stream_fichier_param.readLine();
+        if (ligne.contains(key))
+        {
+            Param = ligne.split("=");
+            Param = Param[1].split(" ");
+            value = Param[0];
+            Fichier_Param.close();
+            return 0;
+
+        }
+    }
+
+    Fichier_Param.close();
+    return 1;
 }
 
 void Parser::read_ardware_limitFile(Position& abs)

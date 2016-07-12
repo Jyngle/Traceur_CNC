@@ -20,16 +20,21 @@ public:
     virtual float get_time() = 0;
     int getF(){return F;}
 
+    static float _vitesse_XY_g00;  // mm/s
+    static float _dist_acceleration_XY_g00;  // mm
+    static float _acceleration_XY; // mm/s²
 
+    static float _vitesse_Z_g00;  // mm/s
+    static float _dist_acceleration_Z_g00;  // mm
+    static float _acceleration_Z; // mm/s²
 
 protected:
+    float time;
 
 
-    static float _vitesse_g00;  // mm/s
-    static float _dist_acceleration_g00;  // mm
-    static float _acceleration; // mm/s²
 
-    float _dist_acceleration;
+    float _dist_acceleration_XY;
+    float _dist_acceleration_Z;
     float X_abs = 0;
     float Y_abs = 0;
     float X_rel = 0;

@@ -10,24 +10,34 @@ G02::G02(float _X, float _Y, float _Z, float _I, float _J, float _F){
     I = _I;
     J = _J;
     F = _F;
-    _dist_acceleration = (_acceleration/2) * powf((F/60)/_acceleration, 2);
+    _dist_acceleration_XY = (_acceleration_XY/2) * powf((F/60)/_acceleration_XY, 2);
 }
 
 float G02::get_time()
 {
-    if(X_rel > 0 && Y_rel > 0)
-    {
-        float dist = sqrt(pow(X_rel,2) + pow(Y_rel,2));
+    float dist_accelerationXY = _dist_acceleration_XY;
 
-        if(_dist_acceleration_g00 * 2 > dist) //Si deux phases : accélération puis décélération
-        {
-            return (sqrt(dist/_acceleration)) * 2;
-        }
-        else//Si trois phases : accélération, maintien, décélération
-        {
-            return (sqrt((2*_dist_acceleration_g00)/_acceleration)) * 2 + ((dist - _dist_acceleration_g00)/F);
-        }
+
+    if(Z_rel != 0 && _dist_acceleration_Z_g00 > _dist_acceleration_XY_g00)
+    {
+       dist_accelerationXY = _dist_acceleration_Z_g00;
     }
+
+    float dist = sqrt(pow(X_rel,2) + pow(Y_rel,2));
+
+    if(dist_accelerationXY * 2 > dist) //Si deux phases : accélération puis décélération
+    {
+        time = (sqrt(dist/_acceleration_XY)) * 2;
+        return (sqrt(dist/_acceleration_XY)) * 2;
+    }
+    else//Si trois phases : accélération, maintien, décélération
+    {
+        time = (sqrt((2*dist_accelerationXY)/_acceleration_XY)) * 2 + ((dist - dist_accelerationXY)/F);
+        return (sqrt((2*dist_accelerationXY)/_acceleration_XY)) * 2 + ((dist - dist_accelerationXY)/F);
+    }
+
+
+    time = 0;
     return 0;
 }
 QList<float> G02::get_info_abs(){

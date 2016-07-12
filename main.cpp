@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
         GParser.ReadInputFile();
         GParser.AjoutMacros();
         GParser.check_depacement();
-        stream_log << "Temps aproximatif du dessin : " << QString::number(GParser.ComputeTime()) << "min" << endl;
+        stream_log << "Temps aproximatif du dessin : " << QString::number((GParser.ComputeTime()) / 60) << "min" << endl;
     }
     catch(QString const& chaine)
     {

@@ -45,6 +45,7 @@ protected:
 
     void read_ardware_limitFile(Position& abs);
 
+    int read_param_file(QString key, QString & value);
 
     void absolute_relative();
     void compute_taille_figure(QList<Ligne *> liste_gcode);
