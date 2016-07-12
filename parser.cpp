@@ -314,12 +314,12 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
 
 void Parser::absolute_relative(){
 
+    struct {
+        float X, Y, Z;
+    }CoordonneesABSprecedente;
 
-    for(QList<Ligne *>::Iterator IT = _ListeGcode.begin(); IT != _ListeGcode.begin(); IT++)
+    for(QList<Ligne *>::Iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
     {
-        struct {
-            float X, Y, Z;
-        }CoordonneesABSprecedente;
 
         if(type_check(*IT) != "Deplacement")
             continue;
@@ -328,68 +328,26 @@ void Parser::absolute_relative(){
         CoordonneesABSprecedente.Y = 0;
         CoordonneesABSprecedente. Z = 0;
 
-        for(QList<Ligne *>::Iterator ITp = (IT-1); ITp != _ListeGcode.begin(); IT--)
+        if(IT != _ListeGcode.begin())
         {
-            if(type_check(*ITp) == "Deplacement")
+
+            for(QList<Ligne *>::Iterator ITp = IT-1; ITp != _ListeGcode.begin(); ITp--)
             {
-                CoordonneesABSprecedente.X = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[0];
-                CoordonneesABSprecedente.Y = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[1];
-                CoordonneesABSprecedente.Y = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[2];
-                break;
+                if(type_check(*ITp) == "Deplacement")
+                {
+                    CoordonneesABSprecedente.X = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[0];
+                    CoordonneesABSprecedente.Y = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[1];
+                    CoordonneesABSprecedente.Z = dynamic_cast<Deplacement *>(*ITp)->get_info_abs()[2];
+                    break;
+                }
             }
         }
-
 
         dynamic_cast<Deplacement *>(*IT)->set_info_rel(CoordonneesABSprecedente.X - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[0],
                                                        CoordonneesABSprecedente.Y - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[1],
                                                        CoordonneesABSprecedente.Z - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[2]);
 
-
-
     }
-
-   /* QList<Ligne*> liste_dep;
-    for(int i = 0;i<_ListeGcode.size();i++){
-        if (Parser::type_check(_ListeGcode[i]) == "Deplacement"){
-            liste_dep.append(_ListeGcode[i]);
-        }
-    } //recupere une liste avec que les deplacements
-
-    float X_new,Y_new,X_actu,Y_actu,X_prec,Y_prec;
-    QList<float> liste_new;
-
-        liste_new.append(dynamic_cast<Deplacement *>(liste_dep[0])->get_info_abs()[0]);
-        liste_new.append(dynamic_cast<Deplacement *>(liste_dep[0])->get_info_abs()[1]);
-
-        for (int i = 1;i< liste_dep.size();i++){
-
-            X_actu = dynamic_cast<Deplacement *>(liste_dep[i])->get_info_abs()[0];
-            Y_actu = dynamic_cast<Deplacement *>(liste_dep[i])->get_info_abs()[1];
-
-            X_prec = dynamic_cast<Deplacement *>(liste_dep[i-1])->get_info_abs()[0];
-            Y_prec = dynamic_cast<Deplacement *>(liste_dep[i-1])->get_info_abs()[1];
-
-            X_new = X_actu - X_prec;
-            Y_new = Y_actu - Y_prec;
-
-            liste_new.append(X_new);
-            liste_new.append(Y_new);
-        }
-
-        float X_rel,Y_rel;
-        for (int i = 0;i< liste_dep.size();i++){
-            X_rel = liste_new.takeFirst();
-            Y_rel = liste_new.takeFirst();
-            dynamic_cast<Deplacement *>(liste_dep[i])->set_info_rel(X_rel,Y_rel);
-        }
-
-        for(int i = 0;i<_ListeGcode.size();i++){
-                    if (Parser::type_check(_ListeGcode[i]) == "Deplacement"){
-                        _ListeGcode.replace(i,liste_dep.takeFirst());
-                    }
-        }*/
-
-
 
     compute_taille_figure(_ListeGcode);
 }
