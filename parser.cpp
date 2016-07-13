@@ -67,6 +67,8 @@ int Parser::ComputeTime()
    for(QList<Ligne *>::iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
         if(type_check(*IT) == "Deplacement")
             time += dynamic_cast<Deplacement *>(*IT)->get_time();
+
+   time += time*0.3;
    return (int)time;
 }
 
