@@ -141,22 +141,19 @@ void Parser::read_ardware_limitFile(Position& abs)
         if (ligne.contains("$130"))
         {
             Param = ligne.split("=");
-            Param = Param[1].split(" ");
-            abs.X = Param[0].toFloat();
+            abs.X = Param[1].toFloat();
             x = true;
         }
         if (ligne.contains("$131"))
         {
             Param = ligne.split("=");
-            Param = Param[1].split(" ");
-            abs.Y = Param[0].toFloat();
+            abs.Y = Param[1].toFloat();
             y = true;
         }
         if (ligne.contains("$132"))
         {
             Param = ligne.split("=");
-            Param = Param[1].split(" ");
-            abs.Z = Param[0].toFloat();
+            abs.Z = Param[1].toFloat();
             z = true;
         }
     }
