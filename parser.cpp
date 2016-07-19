@@ -2,6 +2,7 @@
 #include "g00.h"
 #include "g01.h"
 #include "g02.h"
+#include "g03.h"
 #include "ligne.h"
 #include "figure.h"
 #include "finprogramme.h"
@@ -215,7 +216,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
                     F = ligne.mid(ligne.indexOf("F")+1).simplified().toInt();
               }
 
-              if (ligne.contains("G2")){    //*********************************************************************
+              if (ligne.contains("G2") || ligne.contains("G3")){    //*********************************************************************
 
                   float X = 0;float Y = 0;float I = 0;float J = 0;
 
@@ -235,8 +236,18 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
                       J = valTMP.toFloat();
 
                   //qDebug() << "X : " << X << " Y : " << Y << " I : " << I << " J : " << J << endl;
-                  G02 * g02 = new G02(X,Y,Z,I,J,F);
-                  __ListeGcode.append(g02);
+
+                  if (ligne.contains("G2"))
+                  {
+                      G02 * g02 = new G02(X,Y,Z,I,J,F);
+                      __ListeGcode.append(g02);
+                  }
+                  else
+                  {
+                      G03 * g03 = new G03(X,Y,Z,I,J,F);
+                      __ListeGcode.append(g03);
+                  }
+
               }
 
               if (ligne.contains("SHAPE")){ //********************************************************************* 
