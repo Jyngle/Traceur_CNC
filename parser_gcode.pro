@@ -20,7 +20,9 @@ SOURCES += main.cpp \
     input.cpp \
     macro.cpp \
     finprogramme.cpp \
-    deplacement.cpp
+    deplacement.cpp \
+    arquedecercle.cpp \
+    g03.cpp
 
 HEADERS += \
     parser.h \
@@ -35,4 +37,6 @@ HEADERS += \
     input.h \
     macro.h \
     finprogramme.h \
-    config.h
+    config.h \
+    arquedecercle.h \
+    g03.h
