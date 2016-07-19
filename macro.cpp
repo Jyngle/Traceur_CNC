@@ -25,6 +25,10 @@ QString macro::gcode_ligne()
 
 void macro::SetPositionRetour(float X, float Y, float Z)
 {
+    if(_name == "Fin") //Pas de position de retour si la macro est de type macro Fin
+        return;
+
+
     float ZBeforReturnToPosition = Z;
     QList<Ligne*>::reverse_iterator rIT;
 
