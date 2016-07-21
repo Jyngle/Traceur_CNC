@@ -8,6 +8,7 @@
 #include "input.h"
 #include "macro.h"
 #include "config.h"
+#include "g01.h"
 
 
 
@@ -22,6 +23,7 @@ public:
     void AjoutMacros();
     void check_depacement();
     int ComputeTime();
+    void compute_arc();
 
 protected:
     struct Position{
@@ -31,6 +33,9 @@ protected:
         int F;
     };
 
+    
+
+    
     QList<Ligne *> _ListeGcode;
 
     void parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float X, float Y, float Z, int F);

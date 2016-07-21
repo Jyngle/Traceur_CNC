@@ -12,6 +12,25 @@ public :
     virtual float get_distance();
     virtual QString gcode_ligne();
     virtual float get_time();
+
+    void set_coordonnee_precedentes(float X, float Y);
+
+    QList<float> get_coordonnees_droite_perpendiculaire();
+
+
+private:
+    float X_abs_precedente;
+    float Y_abs_precedente;
+
+
+    float coef_droite_a;
+    float coef_droite_b;
+
+    float coef_droite_perpendiculaire_a;
+    float coef_droite_perpendiculaire_b;
+
+    bool perpendiculaireEstVerticale = false;
+
 };
 
 #endif // G01_H

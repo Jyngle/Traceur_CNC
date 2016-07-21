@@ -25,6 +25,184 @@ void Parser::ReadInputFile()
     absolute_relative();
 }
 
+void Parser::compute_arc()
+{
+    QList<Ligne *>::iterator IT;
+    QList<Ligne *>::iterator ITG01;
+
+    int index1;
+    int index2;
+    G01 * DeplacementPrecedent;
+    G01 * DeplacementActuel;
+    float a, ap, b, bp;
+    bool condition;
+    bool CoordonneeIdentique = false;
+    float xMoyen = 0, yMoyen = 0;
+    int gg = 0;
+
+    struct Coordonees{
+        float x;
+        float y;
+        float z;
+        int f;
+    };
+
+    Coordonees _CoordonneesIntersection;//utilisé dans la boucle for (valeur fausse à la sortie)
+    Coordonees CoordonneesIntersection;//utilisé hors de la boucle for (valeur ok à la sortie)
+    Coordonees CoordonneesIntersectionPrecedente;
+    Coordonees PositionAvantCercle = {};
+    Coordonees PositionFinCercle;
+    Coordonees CoordonneesIntersectionRelatif;
+
+    for(IT = _ListeGcode.begin(), index1 = 0; IT != _ListeGcode.end(); IT++, index1++)
+    {
+
+        if(!dynamic_cast<G01 *>(*IT))//Si objet n'est pas un G01
+            continue;
+
+        condition =  (IT+1 != _ListeGcode.end() && dynamic_cast<G01 *>(*(IT+1)));
+
+
+
+        for(ITG01 = std::next(_ListeGcode.begin(), index1+1), index2 = index1+1; condition ; ITG01++, index2++)
+        {
+
+            DeplacementActuel = dynamic_cast<G01 *>(*ITG01);
+            DeplacementPrecedent = dynamic_cast<G01 *>(*(ITG01 - 1));
+
+            a = DeplacementActuel->get_coordonnees_droite_perpendiculaire()[0];
+            b = DeplacementActuel->get_coordonnees_droite_perpendiculaire()[1];
+
+            ap = DeplacementPrecedent->get_coordonnees_droite_perpendiculaire()[0];
+            bp = DeplacementPrecedent->get_coordonnees_droite_perpendiculaire()[1];
+
+
+            //calcul du point
+            _CoordonneesIntersection.x = (bp - b) / (a - ap);
+            _CoordonneesIntersection.y = ((a * bp) - (b * ap)) / (a - ap);
+
+            if((CoordonneesIntersectionPrecedente.x - _CoordonneesIntersection.x) < 2 && (CoordonneesIntersectionPrecedente.x - _CoordonneesIntersection.x) > - 2)
+                CoordonneeIdentique = true;
+            if((CoordonneesIntersectionPrecedente.y - _CoordonneesIntersection.y) < 2 && (CoordonneesIntersectionPrecedente.y - _CoordonneesIntersection.y) > - 2)
+                CoordonneeIdentique = CoordonneeIdentique && true;
+
+
+            condition =  (ITG01+1 != _ListeGcode.end() && dynamic_cast<G01 *>(*(ITG01+1))) && CoordonneeIdentique;
+
+            if(!CoordonneeIdentique)
+            {
+                index2--;
+                ITG01--;
+            }
+            else
+            {
+                xMoyen += _CoordonneesIntersection.x;
+                yMoyen += _CoordonneesIntersection.y;
+                gg++;
+                CoordonneesIntersection.x = _CoordonneesIntersection.x;
+                CoordonneesIntersection.y = _CoordonneesIntersection.y;
+
+            }
+
+            CoordonneesIntersectionPrecedente.x = _CoordonneesIntersection.x;
+            CoordonneesIntersectionPrecedente.y = _CoordonneesIntersection.y;
+        }
+
+
+
+        if(index2 - index1 > 4)
+        {
+            index1 = index1 - 2;
+            IT = IT - 2;
+
+            index2--;
+            ITG01--;
+
+            //Position avant cercle
+            QList<Ligne *>::Iterator rIT = std::next(_ListeGcode.begin(), index1-1);
+            for(rIT = std::next(_ListeGcode.begin(), index1-1); rIT != _ListeGcode.begin() && type_check(*rIT) != "Deplacement"; rIT--);
+            rIT++;
+
+            if(rIT == _ListeGcode.begin())
+            {
+                PositionAvantCercle.x = 0;
+                PositionAvantCercle.y = 0;
+                PositionAvantCercle.z = 0;
+                PositionAvantCercle.f = 0;
+            }
+            else
+            {
+                PositionAvantCercle.x = dynamic_cast<Deplacement *>(*(rIT))->get_info_abs()[0];
+                PositionAvantCercle.y = dynamic_cast<Deplacement *>(*(rIT))->get_info_abs()[1];
+                PositionAvantCercle.z = dynamic_cast<Deplacement *>(*(rIT))->get_info_abs()[2];
+            }
+
+            //Position fin cercle : (*ITG01)->....
+            PositionFinCercle.x = dynamic_cast<Deplacement *>(*ITG01)->get_info_abs()[0];
+            PositionFinCercle.y = dynamic_cast<Deplacement *>(*ITG01)->get_info_abs()[1];
+            PositionFinCercle.z = dynamic_cast<Deplacement *>(*ITG01)->get_info_abs()[2];
+
+
+
+            //Détection sens horaire ou antihoraire
+            //Recherche des 3 premiers point du cercle :
+
+            float x1, x2,x3;
+            float y1, y2, y3;
+
+            x1 = dynamic_cast<Deplacement *>(_ListeGcode[index1])->get_info_abs()[0];
+            x2 = dynamic_cast<Deplacement *>(_ListeGcode[index1+1])->get_info_abs()[0];
+            x3 = dynamic_cast<Deplacement *>(_ListeGcode[index1+2])->get_info_abs()[0];
+
+            y1 = dynamic_cast<Deplacement *>(*IT)->get_info_abs()[1];
+            y2 = dynamic_cast<Deplacement *>(*(IT+1))->get_info_abs()[1];
+            y3 = dynamic_cast<Deplacement *>(*(IT+2))->get_info_abs()[1];
+
+
+
+
+
+            //Suppresion des éléments de la liste (ancien polygone)
+            for(int i = 0; i <= index2 - index1; i++)
+                _ListeGcode.removeAt(index1);
+
+            //Calcul de la moyenne de l'intersection
+            xMoyen = xMoyen / gg;
+            yMoyen = yMoyen / gg;
+
+            //Calcul de la surface que forme le tringle formé par ces 3 points
+            //Si surface < 0 sens horaire
+            if((((x1*y2-x2*y1)/2) + ((x2*y3-x3*y2)/2) + ((x3*y1-x1*y3)/2)) < 0)
+            { //sens horaire
+
+                //Calcul des coordonnes du centre du cercle en relatif par rapport au point de démarrage du cercle
+                CoordonneesIntersectionRelatif.x = PositionAvantCercle.x - xMoyen;
+                CoordonneesIntersectionRelatif.y = PositionAvantCercle.y - yMoyen;
+
+                G02 * g02 = new G02(PositionFinCercle.x,PositionFinCercle.y,PositionFinCercle.z,CoordonneesIntersectionRelatif.x,CoordonneesIntersectionRelatif.y,PositionFinCercle.f);
+                _ListeGcode.insert(index1, g02); //Peut être index1 + 1 ???
+
+            }
+            else //Sens antihoraire
+            {
+                //Calcul des coordonnes du centre du cercle en relatif par rapport au point de démarrage du cercle
+                CoordonneesIntersectionRelatif.x =  xMoyen - PositionAvantCercle.x;
+                CoordonneesIntersectionRelatif.y =  yMoyen - PositionAvantCercle.y;
+
+                G03 * g03 = new G03(PositionFinCercle.x,PositionFinCercle.y,PositionFinCercle.z,CoordonneesIntersectionRelatif.x,CoordonneesIntersectionRelatif.y,PositionFinCercle.f);
+                _ListeGcode.insert(index1, g03);
+            }
+            //Repositionnement de l'IT et de index1
+            IT = std::next(_ListeGcode.begin(),index1 + 1);
+            index1 = index1 + 1;
+
+        }
+
+    }
+
+
+}
+
 int Parser::ComputeTime()
 {
     /*
@@ -422,6 +600,9 @@ void Parser::absolute_relative(){
                                                        CoordonneesABSprecedente.Y - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[1],
                                                        CoordonneesABSprecedente.Z - dynamic_cast<Deplacement *>(*IT)->get_info_abs()[2]);
 
+        if(dynamic_cast<G01 *>(*IT))
+            dynamic_cast<G01 *>(*IT)->set_coordonnee_precedentes(CoordonneesABSprecedente.X, CoordonneesABSprecedente.Y);
+
     }
 
     compute_taille_figure(_ListeGcode);
@@ -553,6 +734,7 @@ QString Parser::type_check(Ligne *elt){
     if (dynamic_cast<Deplacement *>(elt)){return "Deplacement";}
     if (dynamic_cast<Figure *>(elt)){return "Figure";}
     if (dynamic_cast<macro *>(elt)){return "Macro";}
+
         else return "inconnu";
 }
 

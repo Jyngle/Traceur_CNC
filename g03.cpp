@@ -18,7 +18,7 @@ G03::G03(float _X, float _Y, float _Z, float _I, float _J, float _F){
 QString G03::gcode_ligne(){
 
     //qDebug() << "G02 X " + QString::number(X) + " Y " + QString::number(Y) + " I " + QString::number(I) + " J " + QString::number(J) + " F " + QString::number(F);
-
+    //return "G03 X " + QString::number(X_abs) + " Y "  + QString::number(Y_abs) + " Z "  + QString::number(Z_abs) + " R " + QString::number(sqrt(pow(X_abs-I,2)+pow(Y_abs-J,2))) + " F " + QString::number(F);
     return "G03 X " + QString::number(X_abs) + " Y "  + QString::number(Y_abs) + " Z "  + QString::number(Z_abs) + " I " + QString::number(I) + " J " + QString::number(J) + " F " + QString::number(F);
 
 }

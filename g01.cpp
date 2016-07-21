@@ -11,6 +11,55 @@ G01::G01(float _X, float _Y, float _Z, float _F){
     _dist_acceleration_Z = (_acceleration_Z/2) * powf((F/60)/_acceleration_Z, 2);
 }
 
+
+void G01::set_coordonnee_precedentes(float X, float Y)
+{
+
+    X_abs_precedente = X;
+    Y_abs_precedente = Y;
+
+
+    if(X_abs - X_abs_precedente != 0)
+    {
+        //Calcul coefs droite passant par les deux points
+        coef_droite_a = (Y_abs - Y_abs_precedente) / (X_abs - X_abs_precedente);
+        coef_droite_b = ((Y_abs_precedente * X_abs) - (X_abs_precedente * Y_abs)) / (X_abs - X_abs_precedente);// Attention div par 0 ???????????????????????????
+
+         //Calcul coefs doite passant par le milieu de la première droite et étant perpendiculaire.
+        if(coef_droite_a != 0)
+        {
+            coef_droite_perpendiculaire_a = -1/coef_droite_a;
+            coef_droite_perpendiculaire_b = (((Y_abs - Y_abs_precedente)/2)+((Y_abs>Y_abs_precedente)?Y_abs_precedente:Y_abs)) - (coef_droite_perpendiculaire_a * (((X_abs - X_abs_precedente) / 2)+((X_abs>X_abs_precedente)?X_abs_precedente:X_abs)));
+            //coef_droite_perpendiculaire_b = (((Y_abs - Y_abs_precedente)/2)) - (coef_droite_perpendiculaire_a * (((X_abs - X_abs_precedente) / 2)));
+        }
+        else
+        {
+            //Droite verticale, non pris en charge ..
+            perpendiculaireEstVerticale = true;
+        }
+
+    }
+    else
+    {
+       coef_droite_perpendiculaire_a = 0;
+       coef_droite_perpendiculaire_b = ((Y_abs - Y_abs_precedente) / 2) + +((Y_abs>Y_abs_precedente)?Y_abs_precedente:Y_abs);//faire quelque chose !!!
+    }
+
+
+
+
+}
+
+
+QList<float> G01::get_coordonnees_droite_perpendiculaire()
+{
+   QList<float> coordonnees;
+
+   coordonnees.append(coef_droite_perpendiculaire_a);
+   coordonnees.append(coef_droite_perpendiculaire_b);
+   return coordonnees;
+}
+
 float G01::get_time()
 {
     float dist_accelerationXY = _dist_acceleration_XY;
