@@ -15,9 +15,9 @@ G01::G01(float _X, float _Y, float _Z, float _F){
 void G01::set_coordonnee_precedentes(float X, float Y)
 {
 
-    X_abs_precedente = X;
-    Y_abs_precedente = Y;
-
+    X_abs_precedente = X; //Xa
+    Y_abs_precedente = Y; //Ya
+    float Xm = 0, Ym = 0;
 
     if(X_abs - X_abs_precedente != 0)
     {
@@ -28,8 +28,32 @@ void G01::set_coordonnee_precedentes(float X, float Y)
          //Calcul coefs doite passant par le milieu de la première droite et étant perpendiculaire.
         if(coef_droite_a != 0)
         {
+
+
+
+            if(X_abs > X_abs_precedente && Y_abs > Y_abs_precedente)
+            {
+                Ym = ((Y_abs - Y_abs_precedente)/2) + Y_abs_precedente;
+                Xm = ((X_abs - X_abs_precedente)/2) + X_abs_precedente;
+            }
+            else if(X_abs < X_abs_precedente && Y_abs < Y_abs_precedente)
+            {
+                Xm = ((X_abs_precedente - X_abs)/2) + X_abs;
+                Ym = ((Y_abs_precedente - Y_abs)/2) + Y_abs;
+            }
+            else if(X_abs < X_abs_precedente && Y_abs > Y_abs_precedente)
+            {
+                Xm = ((X_abs_precedente - X_abs)/2) + X_abs;
+                Ym = ((Y_abs - Y_abs_precedente)/2) + Y_abs_precedente;
+            }
+            else
+            {
+                Xm = ((X_abs - X_abs_precedente)/2) + X_abs_precedente;
+                Ym = ((Y_abs_precedente - Y_abs)/2) + Y_abs;
+            }
+
             coef_droite_perpendiculaire_a = -1/coef_droite_a;
-            coef_droite_perpendiculaire_b = (((Y_abs - Y_abs_precedente)/2)+((Y_abs>Y_abs_precedente)?Y_abs_precedente:Y_abs)) - (coef_droite_perpendiculaire_a * (((X_abs - X_abs_precedente) / 2)+((X_abs>X_abs_precedente)?X_abs_precedente:X_abs)));
+            coef_droite_perpendiculaire_b = Ym - (coef_droite_perpendiculaire_a * Xm);
             //coef_droite_perpendiculaire_b = (((Y_abs - Y_abs_precedente)/2)) - (coef_droite_perpendiculaire_a * (((X_abs - X_abs_precedente) / 2)));
         }
         else
@@ -41,8 +65,13 @@ void G01::set_coordonnee_precedentes(float X, float Y)
     }
     else
     {
+        if(Y_abs > Y_abs_precedente)
+            Ym = ((Y_abs - Y_abs_precedente)/2) + Y_abs_precedente;
+        else
+            Ym = ((Y_abs_precedente - Y_abs) / 2) + Y_abs;
+
        coef_droite_perpendiculaire_a = 0;
-       coef_droite_perpendiculaire_b = ((Y_abs - Y_abs_precedente) / 2) + +((Y_abs>Y_abs_precedente)?Y_abs_precedente:Y_abs);//faire quelque chose !!!
+       coef_droite_perpendiculaire_b = Ym;
     }
 
 
@@ -102,6 +131,7 @@ QList<float> G01::get_info_rel(){
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "Z = " << QString::number(Z) << "F = " << QString::number(F);
     liste.append(X_rel);
     liste.append(Y_rel);
+    liste.append(Z_rel);
     return liste;
 }
 

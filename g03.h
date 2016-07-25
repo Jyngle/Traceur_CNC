@@ -6,7 +6,7 @@
 class G03 : public ArqueDeCercle{
 
 public :
-    G03(float _X, float _Y, float _Z, float _I, float _J, float _F);
+    G03(long double _X, long double _Y, long double _Z, long double _I, long double _J, long double _F);
     virtual QString gcode_ligne();
 };
 

@@ -34,16 +34,16 @@ void Parser::compute_arc()
     int index2;
     G01 * DeplacementPrecedent;
     G01 * DeplacementActuel;
-    float a, ap, b, bp;
+    long double a, ap, b, bp;
     bool condition;
     bool CoordonneeIdentique = false;
-    float xMoyen = 0, yMoyen = 0;
+    long double xMoyen = 0, yMoyen = 0;
     int gg = 0;
 
     struct Coordonees{
-        float x;
-        float y;
-        float z;
+        long double x;
+        long double y;
+        long double z;
         int f;
     };
 
@@ -60,14 +60,24 @@ void Parser::compute_arc()
         if(!dynamic_cast<G01 *>(*IT))//Si objet n'est pas un G01
             continue;
 
+        if(dynamic_cast<G01*>(*IT)->get_info_rel()[2] != 0)
+            continue;
+
         condition =  (IT+1 != _ListeGcode.end() && dynamic_cast<G01 *>(*(IT+1)));
 
 
 
-        for(ITG01 = std::next(_ListeGcode.begin(), index1+1), index2 = index1+1; condition ; ITG01++, index2++)
+        for(ITG01 = std::next(_ListeGcode.begin(), index1+1), index2 = index1+1, gg = 0; condition ; ITG01++, index2++)
         {
 
             DeplacementActuel = dynamic_cast<G01 *>(*ITG01);
+
+            if(DeplacementActuel->get_info_abs()[0] == 0 || DeplacementActuel->get_info_abs()[1] == 0)
+            {
+                condition =  (ITG01+1 != _ListeGcode.end() && dynamic_cast<G01 *>(*(ITG01+1)));
+                continue;
+            }
+
             DeplacementPrecedent = dynamic_cast<G01 *>(*(ITG01 - 1));
 
             a = DeplacementActuel->get_coordonnees_droite_perpendiculaire()[0];
@@ -81,9 +91,10 @@ void Parser::compute_arc()
             _CoordonneesIntersection.x = (bp - b) / (a - ap);
             _CoordonneesIntersection.y = ((a * bp) - (b * ap)) / (a - ap);
 
-            if((CoordonneesIntersectionPrecedente.x - _CoordonneesIntersection.x) < 2 && (CoordonneesIntersectionPrecedente.x - _CoordonneesIntersection.x) > - 2)
+            CoordonneeIdentique = false;
+            if((CoordonneesIntersectionPrecedente.x - _CoordonneesIntersection.x) < 1 && (CoordonneesIntersectionPrecedente.x - _CoordonneesIntersection.x) > - 1)
                 CoordonneeIdentique = true;
-            if((CoordonneesIntersectionPrecedente.y - _CoordonneesIntersection.y) < 2 && (CoordonneesIntersectionPrecedente.y - _CoordonneesIntersection.y) > - 2)
+            if((CoordonneesIntersectionPrecedente.y - _CoordonneesIntersection.y) < 1 && (CoordonneesIntersectionPrecedente.y - _CoordonneesIntersection.y) > - 1)
                 CoordonneeIdentique = CoordonneeIdentique && true;
 
 
@@ -110,18 +121,18 @@ void Parser::compute_arc()
 
 
 
-        if(index2 - index1 > 4)
+        if(index2 - index1 > 10)
         {
-            index1 = index1 - 2;
-            IT = IT - 2;
+            index1--;
+            IT--;
 
             index2--;
             ITG01--;
 
             //Position avant cercle
-            QList<Ligne *>::Iterator rIT = std::next(_ListeGcode.begin(), index1-1);
+            QList<Ligne *>::Iterator rIT;
             for(rIT = std::next(_ListeGcode.begin(), index1-1); rIT != _ListeGcode.begin() && type_check(*rIT) != "Deplacement"; rIT--);
-            rIT++;
+
 
             if(rIT == _ListeGcode.begin())
             {
@@ -138,17 +149,17 @@ void Parser::compute_arc()
             }
 
             //Position fin cercle : (*ITG01)->....
-            PositionFinCercle.x = dynamic_cast<Deplacement *>(*ITG01)->get_info_abs()[0];
-            PositionFinCercle.y = dynamic_cast<Deplacement *>(*ITG01)->get_info_abs()[1];
-            PositionFinCercle.z = dynamic_cast<Deplacement *>(*ITG01)->get_info_abs()[2];
+            PositionFinCercle.x = dynamic_cast<Deplacement *>(*(ITG01-2))->get_info_abs()[0];
+            PositionFinCercle.y = dynamic_cast<Deplacement *>(*(ITG01-2))->get_info_abs()[1];
+            PositionFinCercle.z = dynamic_cast<Deplacement *>(*(ITG01-2))->get_info_abs()[2];
 
 
 
             //Détection sens horaire ou antihoraire
             //Recherche des 3 premiers point du cercle :
 
-            float x1, x2,x3;
-            float y1, y2, y3;
+            long double x1, x2,x3;
+            long double y1, y2, y3;
 
             x1 = dynamic_cast<Deplacement *>(_ListeGcode[index1])->get_info_abs()[0];
             x2 = dynamic_cast<Deplacement *>(_ListeGcode[index1+1])->get_info_abs()[0];
@@ -193,8 +204,8 @@ void Parser::compute_arc()
                 _ListeGcode.insert(index1, g03);
             }
             //Repositionnement de l'IT et de index1
-            IT = std::next(_ListeGcode.begin(),index1 + 1);
-            index1 = index1 + 1;
+            IT = std::next(_ListeGcode.begin(),index1);
+            //index1 = index1 + 1;
 
         }
 
@@ -428,7 +439,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
 
               }
 
-              if (ligne.contains("SHAPE")){ //********************************************************************* 
+              if (ligne.contains("Tool Up")){ //*********************************************************************
                 Figure * figure = new Figure();
                 __ListeGcode.append(figure);
               }
@@ -497,7 +508,8 @@ void Parser::insert_macro_at(QString name, QString FileNameMacro, int Index)
     macro * Macro = new macro(name,ListeGcodeMacro);
 
     //Ajout des positions de retour
-    Macro->SetPositionRetour(X,Y,Z);
+   if(Macro->_name != "MacroFin")
+        Macro->SetPositionRetour(X,Y,Z);
 
     //Insertion de la macro dans la liste de Gcode au bon index
     _ListeGcode.insert(Index,Macro);
@@ -568,7 +580,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
 void Parser::absolute_relative(){
 
     struct {
-        float X, Y, Z;
+        long double X, Y, Z;
     }CoordonneesABSprecedente;
 
     for(QList<Ligne *>::Iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
@@ -605,7 +617,7 @@ void Parser::absolute_relative(){
 
     }
 
-    compute_taille_figure(_ListeGcode);
+    //compute_taille_figure(_ListeGcode);
 }
 
 void Parser::compute_taille_figure(QList<Ligne *> liste_gcode){
@@ -711,18 +723,35 @@ void Parser::WriteOutputFile(){
 int Parser::GetValue(QString ligne, QString Key, QString &Value)
 {
     if(!ligne.contains(Key)) {return 0;}
-
+    bool IsaNumber;
     ligne = ligne.simplified();
     ligne = ligne.replace(" ","");
 
-    QStringList Param = ligne.split(Key);
-    int i;
-    const char* c = Param[1].toStdString().c_str();
+    QString Param = ligne.split(Key)[1];
 
-    for(i = 0; (c[i] >= 48 && c[i] <= 57) || (c[i] == 46) || (c[i] == 45); i++);
+ int i;
 
-    QString tmp = QString(c);
-    Value = tmp.mid(0, i);
+    for(i = 0; i < Param.length(); i++)
+    {
+        IsaNumber = false;
+
+        Param.at(i);
+        QString caract(Param.at(i));
+        caract.toInt(&IsaNumber, 10);
+
+        IsaNumber = IsaNumber || caract == "." || caract == "," || caract == "-";
+
+        if(!IsaNumber)
+            break;
+    }
+
+
+    //const int* c = (int*)Param[1].toStdString().c_str();
+
+    //for(i = 0; (c[i] >= 48 && c[i] <= 57) || (c[i] == 46) || (c[i] == 45); i++);
+
+    //QString tmp = QString(c);
+    Value = Param.mid(0, i);
     if(Value.isEmpty())
         return 0;
 

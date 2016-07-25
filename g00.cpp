@@ -58,6 +58,7 @@ QList<float> G00::get_info_rel(){
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "Z = " << QString::number(Z) << "F = " << QString::number(F);
     liste.append(X_rel);
     liste.append(Y_rel);
+    liste.append(Z_rel);
     return liste;
 }
 

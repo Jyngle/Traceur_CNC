@@ -14,8 +14,8 @@ public :
     virtual float get_time();
 
 protected:
-    float I = 0;
-    float J = 0;
+    long double I = 0;
+    long double J = 0;
 };
 
 #endif // ARQUEDECERCLE_H
