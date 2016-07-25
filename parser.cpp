@@ -18,7 +18,7 @@
 
 void Parser::ReadInputFile()
 {
-    clean_file();
+    //clean_file();
     parse_gcode_file(INPUT_GCODE,_ListeGcode, 0, 0, 0, 0);
 
     _ListeGcode.append(new FinProgramme());
