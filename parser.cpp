@@ -376,7 +376,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
            {
               QString ligne = fichier_in.readLine();
 
-              if (ligne.contains("G0") || ligne.contains("G1")){    //*********************************************************************
+              if (ligne.contains("G00") || ligne.contains("G01")){    //*********************************************************************
 
                   if(GetValue(ligne,"X",valTMP))
                       X = valTMP.toFloat();
@@ -388,7 +388,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
                       Z = valTMP.toFloat();
 
                   //qDebug() << "test" << "X : " << X << " Y : " << Y << " Z : " << Z << endl;
-                  if (ligne.contains("G0"))
+                  if (ligne.contains("G00"))
                   {
                       G00 * g00 = new G00(X,Y,Z,F);
                       __ListeGcode.append(g00);
@@ -405,7 +405,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
                     F = ligne.mid(ligne.indexOf("F")+1).simplified().toInt();
               }
 
-              if (ligne.contains("G2") || ligne.contains("G3")){    //*********************************************************************
+              if (ligne.contains("G02") || ligne.contains("G03")){    //*********************************************************************
 
                   float X = 0;float Y = 0;float I = 0;float J = 0;
 
@@ -426,7 +426,7 @@ void Parser::parse_gcode_file(QString name, QList<Ligne *> &__ListeGcode, float 
 
                   //qDebug() << "X : " << X << " Y : " << Y << " I : " << I << " J : " << J << endl;
 
-                  if (ligne.contains("G2"))
+                  if (ligne.contains("G02"))
                   {
                       G02 * g02 = new G02(X,Y,Z,I,J,F);
                       __ListeGcode.append(g02);
