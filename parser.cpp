@@ -773,7 +773,7 @@ int i,j;
 long double x_a,y_a,x_b,y_b,coeff_a,coeff_b,coeff_a_p,coeff_b_p,
       coeff_c_p,x_new_1,y_new_1,x_new_2,y_new_2,x_new,y_new,f_new,z_new;
 
-QList<Ligne *> new_liste_gcode;
+QList<Ligne *> new_liste_gcode;// nouvelle liste temporaire (pas bien !)
 
     for (i = 0; i<_ListeGcode.size();i++){
         if(!dynamic_cast<G01 *>(_ListeGcode[i])){new_liste_gcode.append(_ListeGcode[i]); continue;}
