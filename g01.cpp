@@ -126,6 +126,14 @@ QList<float> G01::get_info_abs(){
     return liste;
 }
 
+QList<float> G01::get_info_abs_prec(){
+    QList<float> liste;
+    //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "Z = " << QString::number(Z) << "F = " << QString::number(F);
+    liste.append(X_abs_precedente);
+    liste.append(Y_abs_precedente);
+    return liste;
+}
+
 QList<float> G01::get_info_rel(){
     QList<float> liste;
     //qDebug() << "X = " <<  QString::number(X) << "Y = " << QString::number(Y) << "Z = " << QString::number(Z) << "F = " << QString::number(F);

@@ -8,6 +8,7 @@ class G01 : public Deplacement{
 public :
     G01(float _X, float _Y, float _Z, float _F);
     virtual QList<float> get_info_abs();
+    QList<float> get_info_abs_prec();
     virtual QList<float> get_info_rel();
     virtual float get_distance();
     virtual QString gcode_ligne();
@@ -18,10 +19,12 @@ public :
     QList<float> get_coordonnees_droite_perpendiculaire();
 
 
+
+
 private:
+
     float X_abs_precedente;
     float Y_abs_precedente;
-
 
     float coef_droite_a;
     float coef_droite_b;

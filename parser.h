@@ -24,6 +24,7 @@ public:
     void check_depacement();
     int ComputeTime();
     void compute_arc();
+    void diviselignes(float pas);
 
 protected:
     struct Position{
