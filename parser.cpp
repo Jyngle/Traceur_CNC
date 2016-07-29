@@ -20,8 +20,9 @@ void Parser::ReadInputFile()
 {
     //clean_file();
     parse_gcode_file(INPUT_GCODE,_ListeGcode, 0, 0, 0, 0);
-
-    _ListeGcode.append(new FinProgramme());
+    _ListeGcode.append(new FinProgramme());   
+    absolute_relative();
+    diviselignes(5);
     absolute_relative();
 }
 
@@ -591,7 +592,7 @@ void Parser::absolute_relative(){
 
         CoordonneesABSprecedente.X = 0;
         CoordonneesABSprecedente.Y = 0;
-        CoordonneesABSprecedente. Z = 0;
+        CoordonneesABSprecedente.Z = 0;
 
         if(IT != _ListeGcode.begin())
         {
@@ -920,10 +921,71 @@ return 1;
 }
 
 QString Parser::type_check(Ligne *elt){
+
     if (dynamic_cast<Deplacement *>(elt)){return "Deplacement";}
     if (dynamic_cast<Figure *>(elt)){return "Figure";}
     if (dynamic_cast<macro *>(elt)){return "Macro";}
+    else return "inconnu";
+}
 
-        else return "inconnu";
+void Parser::diviselignes(float pas){
+int i,j;
+long double x_a,y_a,x_b,y_b,coeff_a,coeff_b,coeff_a_p,coeff_b_p,
+      coeff_c_p,x_new_1,y_new_1,x_new_2,y_new_2,x_new,y_new,f_new,z_new;
+
+QList<Ligne *> new_liste_gcode;// nouvelle liste temporaire (pas bien !)
+
+    for (i = 0; i<_ListeGcode.size();i++){
+        if(!dynamic_cast<G01 *>(_ListeGcode[i])){new_liste_gcode.append(_ListeGcode[i]); continue;}
+
+            x_a = dynamic_cast<G01 *>(_ListeGcode[i])->get_info_abs_prec()[0];
+            y_a = dynamic_cast<G01 *>(_ListeGcode[i])->get_info_abs_prec()[1];
+
+            x_b = dynamic_cast<G01 *>(_ListeGcode[i])->get_info_abs()[0];
+            y_b = dynamic_cast<G01 *>(_ListeGcode[i])->get_info_abs()[1];
+
+            x_new = x_a;
+            y_new = y_a;
+
+            if(x_b == x_a){new_liste_gcode.append(_ListeGcode[i]);continue;}
+
+            f_new = dynamic_cast<G01 *>(_ListeGcode[i])->getF(); //on recupere l'ancienne valeur de f
+            z_new = dynamic_cast<G01 *>(_ListeGcode[i])->get_Z(); //on recupere l'ancienne valeur de z
+
+            while(x_new != x_b && y_new != y_b){
+
+                x_a = x_new;
+                y_a = y_new;
+
+                coeff_a = (y_b - y_a) / (x_b - x_a); //Coefficient a de la droite (xa,ya) --> (xb,yb)
+                coeff_b = (y_a * x_b - x_a * y_b) / (x_b - x_a);//Coefficient b de la droite (xa,ya) --> (xb,yb)
+
+                coeff_a_p = 1 + pow(coeff_a,2); //Resolution de l'équation du second degré ax² + bx + c = 0
+                coeff_b_p = 2 * (coeff_a * coeff_b - coeff_a * y_a - x_a);
+                coeff_c_p = pow(x_a,2) + pow(coeff_b,2) - 2 * coeff_b * y_a + pow(y_a,2) - pow(pas,2);
+
+                x_new_1 = (- coeff_b_p + sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 1
+                y_new_1 = coeff_a * x_new_1 + coeff_b;
+
+                x_new_2 = (- coeff_b_p - sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 2
+                y_new_2 = coeff_a * x_new_2 + coeff_b;
+
+                if((x_a < x_b && y_a < y_b) || (x_a > x_b && y_a < y_b)){//Selection de la bonne solution
+                    if(y_new_1 > y_a){x_new = x_new_1;y_new = y_new_1;}
+                    else {x_new = x_new_2; y_new = y_new_2;}
+                    if(y_new > y_b){x_new = x_b; y_new = y_b;}//Detecion quand le point "dépasse" le point (xb,yb)
+                }
+
+                if((x_a > x_b && y_a > y_b) || (x_a < x_b && y_a > y_b)){//Selection de la bonne solution
+                if(y_new_1 > y_a){x_new = x_new_2;y_new = y_new_2;}
+                    else {x_new = x_new_1; y_new = y_new_1;}
+                    if(y_new < y_b){x_new = x_b; y_new = y_b;}//Detecion quand le point "dépasse" le point (xb,yb)
+                }
+
+                G01* g01 = new G01(x_new,y_new,z_new,f_new);
+                new_liste_gcode.append(g01);
+            }
+     }
+    _ListeGcode = new_liste_gcode;
 }
 
