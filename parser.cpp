@@ -703,8 +703,168 @@ void Parser::AjoutMacros(){
              QStringList liste = ligne.split(" ");
              insert_macro_fin(liste[2]);
         }
+        else if(ligne.contains("Scan3D"))
+        {
+             QStringList liste = ligne.split(" ");
+             //segmentation
+             scanDeltaZ(liste[2]);
+        }
 
     }
+}
+
+void Parser::scanDeltaZ(QString inputFile)
+{
+    QString filename_scan = QCoreApplication::applicationDirPath() + "/" + inputFile;
+    QFile File_Scan(filename_scan);
+    QTextStream StreamFileScan(&File_Scan);
+
+    if(!File_Scan.open(QIODevice::ReadOnly | QIODevice::Text))
+        throw QString("PRB ouverture fichier Scan3D");
+
+    QString ligne;
+    QStringList ClefValeur;
+
+    float X1, X2, Y1, Y2, PAS;
+    int test;
+
+    while (!StreamFileScan.atEnd()){
+        ligne = StreamFileScan.readLine();
+
+        if(ligne.contains("X1"))
+        {
+            ClefValeur = ligne.split("=");
+            X1 = ClefValeur[1].toFloat();
+            test++;
+        }
+        if(ligne.contains("X2"))
+        {
+            ClefValeur = ligne.split("=");
+            X2 = ClefValeur[1].toFloat();
+            test++;
+        }
+        if(ligne.contains("Y1"))
+        {
+            ClefValeur = ligne.split("=");
+            Y1 = ClefValeur[1].toFloat();
+            test++;
+        }
+        if(ligne.contains("Y2"))
+        {
+            ClefValeur = ligne.split("=");
+            Y2 = ClefValeur[1].toFloat();
+            test++;
+        }
+        if(ligne.contains("PAS"))
+        {
+            ClefValeur = ligne.split("=");
+            PAS = ClefValeur[1].toFloat();
+            test++;
+        }
+    }
+
+    if(test != 5)
+        throw QString("Manque paramètre dans fichier Scan3D");
+
+
+    float X1p = ((X1 > X2)?X2:X1);
+    float X2p = ((X1 < X2)?X2:X1);
+    float Y1p = ((Y1 < Y2)?Y2:Y1);
+    float Y2p = ((Y1 > Y2)?Y2:Y1);
+
+    const int iMax = (X2p - X1p) / PAS;
+    const int jMax = (Y1p - Y2p) / PAS;
+
+
+    float altitude[iMax+1][jMax+1];
+
+    while(!StreamFileScan.atEnd() && !ligne.contains("0 0"))
+         ligne = StreamFileScan.readLine();
+
+    QStringList ligne_splited;
+
+    while(!StreamFileScan.atEnd())
+    {
+        ligne_splited = ligne.split(" ");
+        altitude[ligne_splited[0].toInt()][ligne_splited[1].toInt()] = ligne_splited[2].toFloat();
+    }
+
+    float Xm, Ym, ZDeltam = 0;
+
+    struct{
+        float X,Y;
+        float poids;
+        float DeltaZ;
+    }a,b,c,d;
+
+
+    /*
+     *
+     *    O D                 O A
+     *
+     *
+     *
+     *             O m (Xm,Ym,Zm)
+     *
+     *
+     *
+     *    O C                 O B
+     *
+     * */
+
+    int i, j;
+
+    for(QList<Ligne *>::Iterator IT = _ListeGcode.begin(); IT != _ListeGcode.end(); IT++)
+    {
+        if(!dynamic_cast<G01*>(*IT))
+            continue;
+
+        Xm = dynamic_cast<G01*>(*IT)->get_info_abs()[0];
+        Ym = dynamic_cast<G01*>(*IT)->get_info_abs()[1];
+        Zm = dynamic_cast<G01*>(*IT)->get_info_abs()[2];
+
+
+        if(Xm > X2 || Ym > Y1 || Xm < X1 || Ym < Y2)
+            continue; //ToDo informer utilisateur dans fichier de log que le point est hors du Scan3D
+
+        for(i = 0; (i*PAS + X1) < Xm; i++);
+        for(j = 0; (j*PAS + Y2) < Ym; j++);
+
+        a.DeltaZ = altitude[i][j];
+        b.DeltaZ = altitude[i][j-1];
+        c.DeltaZ = altitude[i-1][j-1];
+        d.DeltaZ = altitude[i-1][j];
+
+        a.X=i*PAS + X1;
+        a.Y=j*PAS + Y2;
+
+        b.X=i*PAS + X1;
+        b.Y=(j-1)*PAS + Y2;
+
+        c.X=(i-1)*PAS + X1;
+        c.Y=(j-1)*PAS + Y2;
+
+        d.X=(i-1)*PAS + X1;
+        d.Y=j*PAS + Y2;
+
+        a.poids = ((Ym - b.Y) / PAS) * ((Xm - d.X) / PAS);
+        b.poids = ((a.Y - Ym) / PAS) * ((Xm - c.X) / PAS);
+        c.poids = ((d.Y - Ym) / PAS) * ((b.X - Xm) / PAS);
+        d.poids = ((Ym - c.Y) / PAS) * ((a.X - Xm) / PAS);
+
+        a.DeltaZ *= a.poids;
+        b.DeltaZ *= b.poids;
+        c.DeltaZ *= c.poids;
+        d.DeltaZ *= d.poids;
+
+        ZDeltam = a.DeltaZ + b.DeltaZ + c.DeltaZ + d.DeltaZ;
+
+        dynamic_cast<G01*>(*IT)->set_info_abs(Xm,Ym,Zm - ZDeltam);
+
+    }
+
+
+
 }
 
 void Parser::WriteOutputFile(){

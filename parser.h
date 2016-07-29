@@ -56,6 +56,7 @@ protected:
     void compute_taille_figure(QList<Ligne *> liste_gcode);
     void clean_file();
     int GetValue(QString ligne, QString Key, QString &Value);
+    void scanDeltaZ(QString inputFile);
     QString type_check(Ligne *elt);
 
 };
