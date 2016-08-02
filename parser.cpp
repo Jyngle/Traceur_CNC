@@ -727,7 +727,7 @@ void Parser::scanDeltaZ(QString inputFile)
     QStringList ClefValeur;
 
     float X1, X2, Y1, Y2, PAS;
-    int test;
+    int test = 0;
 
     while (!StreamFileScan.atEnd()){
         ligne = StreamFileScan.readLine();
@@ -779,6 +779,8 @@ void Parser::scanDeltaZ(QString inputFile)
 
     float altitude[iMax+1][jMax+1];
 
+    StreamFileScan.seek(0);
+
     while(!StreamFileScan.atEnd() && !ligne.contains("0 0"))
          ligne = StreamFileScan.readLine();
 
@@ -788,9 +790,10 @@ void Parser::scanDeltaZ(QString inputFile)
     {
         ligne_splited = ligne.split(" ");
         altitude[ligne_splited[0].toInt()][ligne_splited[1].toInt()] = ligne_splited[2].toFloat();
+        ligne = StreamFileScan.readLine();
     }
 
-    float Xm, Ym, ZDeltam = 0;
+    float Xm, Ym, ZDeltam = 0, Zm = 0;
 
     struct{
         float X,Y;
@@ -947,12 +950,12 @@ QList<Ligne *> new_liste_gcode;// nouvelle liste temporaire (pas bien !)
             x_new = x_a;
             y_new = y_a;
 
-            if(x_b == x_a){new_liste_gcode.append(_ListeGcode[i]);continue;}
+            if(x_b == x_a && y_b == y_a){new_liste_gcode.append(_ListeGcode[i]);continue;}
 
             f_new = dynamic_cast<G01 *>(_ListeGcode[i])->getF(); //on recupere l'ancienne valeur de f
             z_new = dynamic_cast<G01 *>(_ListeGcode[i])->get_Z(); //on recupere l'ancienne valeur de z
 
-            while(x_new != x_b && y_new != y_b){
+            do{
 
                 x_a = x_new;
                 y_a = y_new;
@@ -970,21 +973,49 @@ QList<Ligne *> new_liste_gcode;// nouvelle liste temporaire (pas bien !)
                 x_new_2 = (- coeff_b_p - sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 2
                 y_new_2 = coeff_a * x_new_2 + coeff_b;
 
-                if((x_a < x_b && y_a < y_b) || (x_a > x_b && y_a < y_b)){//Selection de la bonne solution
-                    if(y_new_1 > y_a){x_new = x_new_1;y_new = y_new_1;}
-                    else {x_new = x_new_2; y_new = y_new_2;}
-                    if(y_new > y_b){x_new = x_b; y_new = y_b;}//Detecion quand le point "dépasse" le point (xb,yb)
+                if((x_a <= x_b && y_a <= y_b) || (x_a >= x_b && y_a <= y_b))
+                {//Selection de la bonne solution
+                    if(y_new_1 >= y_a)
+                    {
+                        x_new = x_new_1;
+                        y_new = y_new_1;
+                    }
+                    else
+                    {
+                        x_new = x_new_2;
+                        y_new = y_new_2;
+                    }
+
+                    if(y_new >= y_b)
+                    {
+                        x_new = x_b;
+                        y_new = y_b;//Detecion quand le point "dépasse" le point (xb,yb)
+                    }
                 }
 
-                if((x_a > x_b && y_a > y_b) || (x_a < x_b && y_a > y_b)){//Selection de la bonne solution
-                if(y_new_1 > y_a){x_new = x_new_2;y_new = y_new_2;}
-                    else {x_new = x_new_1; y_new = y_new_1;}
-                    if(y_new < y_b){x_new = x_b; y_new = y_b;}//Detecion quand le point "dépasse" le point (xb,yb)
+                if((x_a >= x_b && y_a >= y_b) || (x_a <= x_b && y_a >= y_b)){//Selection de la bonne solution
+                    if(y_new_1 >= y_a)
+                    {
+                        x_new = x_new_2;
+                        y_new = y_new_2;
+                    }
+                    else
+                    {
+                        x_new = x_new_1;
+                        y_new = y_new_1;
+                    }
+
+
+                    if(y_new <= y_b)
+                    {
+                        x_new = x_b;
+                        y_new = y_b;
+                    }//Detecion quand le point "dépasse" le point (xb,yb)
                 }
 
                 G01* g01 = new G01(x_new,y_new,z_new,f_new);
                 new_liste_gcode.append(g01);
-            }
+            }while(x_new != x_b && y_new != y_b);
      }
     _ListeGcode = new_liste_gcode;
 }
