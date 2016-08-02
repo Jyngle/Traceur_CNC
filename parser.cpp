@@ -955,68 +955,79 @@ QList<Ligne *> new_liste_gcode;// nouvelle liste temporaire (pas bien !)
             f_new = dynamic_cast<G01 *>(_ListeGcode[i])->getF(); //on recupere l'ancienne valeur de f
             z_new = dynamic_cast<G01 *>(_ListeGcode[i])->get_Z(); //on recupere l'ancienne valeur de z
 
-            do{
-
-                x_a = x_new;
-                y_a = y_new;
-
-                coeff_a = (y_b - y_a) / (x_b - x_a); //Coefficient a de la droite (xa,ya) --> (xb,yb)
-                coeff_b = (y_a * x_b - x_a * y_b) / (x_b - x_a);//Coefficient b de la droite (xa,ya) --> (xb,yb)
-
-                coeff_a_p = 1 + pow(coeff_a,2); //Resolution de l'équation du second degré ax² + bx + c = 0
-                coeff_b_p = 2 * (coeff_a * coeff_b - coeff_a * y_a - x_a);
-                coeff_c_p = pow(x_a,2) + pow(coeff_b,2) - 2 * coeff_b * y_a + pow(y_a,2) - pow(pas,2);
-
-                x_new_1 = (- coeff_b_p + sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 1
-                y_new_1 = coeff_a * x_new_1 + coeff_b;
-
-                x_new_2 = (- coeff_b_p - sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 2
-                y_new_2 = coeff_a * x_new_2 + coeff_b;
-
-                if((x_a <= x_b && y_a <= y_b) || (x_a >= x_b && y_a <= y_b))
-                {//Selection de la bonne solution
-                    if(y_new_1 >= y_a)
-                    {
-                        x_new = x_new_1;
-                        y_new = y_new_1;
-                    }
-                    else
-                    {
-                        x_new = x_new_2;
-                        y_new = y_new_2;
-                    }
-
-                    if(y_new >= y_b)
-                    {
-                        x_new = x_b;
-                        y_new = y_b;//Detecion quand le point "dépasse" le point (xb,yb)
-                    }
-                }
-
-                if((x_a >= x_b && y_a >= y_b) || (x_a <= x_b && y_a >= y_b)){//Selection de la bonne solution
-                    if(y_new_1 >= y_a)
-                    {
-                        x_new = x_new_2;
-                        y_new = y_new_2;
-                    }
-                    else
-                    {
-                        x_new = x_new_1;
-                        y_new = y_new_1;
-                    }
-
-
-                    if(y_new <= y_b)
-                    {
-                        x_new = x_b;
+            if (x_b == x_a){ // cas droite verticale
+                do {
+                    y_new += pas;
+                    if(y_new >= y_b){
                         y_new = y_b;
-                    }//Detecion quand le point "dépasse" le point (xb,yb)
-                }
+                    }
+                    G01* g01 = new G01(x_a,y_new,z_new,f_new);
+                    new_liste_gcode.append(g01);
+                }while(y_new != y_b);
+            }
+            else{ //cas non verticale
+                do{
+                    x_a = x_new;
+                    y_a = y_new;
 
-                G01* g01 = new G01(x_new,y_new,z_new,f_new);
-                new_liste_gcode.append(g01);
-            }while(x_new != x_b && y_new != y_b);
-     }
+                    coeff_a = (y_b - y_a) / (x_b - x_a); //Coefficient a de la droite (xa,ya) --> (xb,yb)
+                    coeff_b = (y_a * x_b - x_a * y_b) / (x_b - x_a);//Coefficient b de la droite (xa,ya) --> (xb,yb)
+
+                    coeff_a_p = 1 + pow(coeff_a,2); //Resolution de l'équation du second degré ax² + bx + c = 0
+                    coeff_b_p = 2 * (coeff_a * coeff_b - coeff_a * y_a - x_a);
+                    coeff_c_p = pow(x_a,2) + pow(coeff_b,2) - 2 * coeff_b * y_a + pow(y_a,2) - pow(pas,2);
+
+                    x_new_1 = (- coeff_b_p + sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 1
+                    y_new_1 = coeff_a * x_new_1 + coeff_b;
+
+                    x_new_2 = (- coeff_b_p - sqrt(pow(coeff_b_p,2) - 4 * coeff_a_p * coeff_c_p)) / (2 * coeff_a_p);//Solution 2
+                    y_new_2 = coeff_a * x_new_2 + coeff_b;
+
+                    if((x_a <= x_b && y_a <= y_b) || (x_a >= x_b && y_a <= y_b))
+                        {//Selection de la bonne solution
+                        if(y_new_1 >= y_a)
+                        {
+                            x_new = x_new_1;
+                            y_new = y_new_1;
+                        }
+                        else
+                        {
+                            x_new = x_new_2;
+                            y_new = y_new_2;
+                        }
+
+                        if(y_new >= y_b)
+                        {
+                            x_new = x_b;
+                            y_new = y_b;//Detecion quand le point "dépasse" le point (xb,yb)
+                        }
+                    }
+
+                    if((x_a >= x_b && y_a >= y_b) || (x_a <= x_b && y_a >= y_b)){//Selection de la bonne solution
+                        if(y_new_1 >= y_a)
+                        {
+                            x_new = x_new_2;
+                            y_new = y_new_2;
+                        }
+                        else
+                        {
+                            x_new = x_new_1;
+                            y_new = y_new_1;
+                        }
+
+
+                        if(y_new <= y_b)
+                        {
+                            x_new = x_b;
+                            y_new = y_b;
+                        }//Detecion quand le point "dépasse" le point (xb,yb)
+                    }
+
+                    G01* g01 = new G01(x_new,y_new,z_new,f_new);
+                    new_liste_gcode.append(g01);
+                }while(x_new != x_b && y_new != y_b);
+            }
+        }
     _ListeGcode = new_liste_gcode;
 }
 
