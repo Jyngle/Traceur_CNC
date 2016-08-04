@@ -22,8 +22,6 @@ void Parser::ReadInputFile()
     parse_gcode_file(INPUT_GCODE,_ListeGcode, 0, 0, 0, 0);
     _ListeGcode.append(new FinProgramme());   
     absolute_relative();
-    diviselignes(5);
-    absolute_relative();
 }
 
 void Parser::compute_arc()
@@ -708,6 +706,9 @@ void Parser::AjoutMacros(){
         {
              QStringList liste = ligne.split(" ");
              //segmentation
+             diviselignes(PAS_SEGMENTATION);
+             absolute_relative();
+             //Modif axe Z
              scanDeltaZ(liste[2]);
         }
 

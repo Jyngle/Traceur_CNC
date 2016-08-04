@@ -10,4 +10,7 @@
 #define CORRESPONDANCE "/correspondance.txt"
 #define ERROR "/err.nc"
 
+
+#define PAS_SEGMENTATION 5
+
 #endif // CONFIG_H
