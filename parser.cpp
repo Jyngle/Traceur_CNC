@@ -692,7 +692,7 @@ void Parser::AjoutMacros(){
             QStringList liste = ligne.split(" ");        
             insert_macro_distance(liste[4],liste[2].toFloat(),liste[3].toFloat());
         }
-        else if(ligne.contains("Début"))
+        else if(ligne.contains("Debut"))
         {
              QStringList liste = ligne.split(" ");
              insert_macro_debut(liste[2]);
@@ -717,7 +717,7 @@ void Parser::AjoutMacros(){
 
 void Parser::scanDeltaZ(QString inputFile)
 {
-    QString filename_scan = QCoreApplication::applicationDirPath() + "/" + inputFile;
+    QString filename_scan = QCoreApplication::applicationDirPath() + SCAN + inputFile;
     QFile File_Scan(filename_scan);
     QTextStream StreamFileScan(&File_Scan);
 
