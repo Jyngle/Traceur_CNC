@@ -43,6 +43,8 @@ protected:
 
     void insert_macro_distance(QString FileNameMacro, float distance_min, float distance_max);
 
+    void insert_macro_traits(QString FileNameMacro, QString nb_traits);
+
     void insert_macro_debut(QString FileNameMacro);
 
     void insert_macro_fin(QString FileNameMacro);

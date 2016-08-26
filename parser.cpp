@@ -22,6 +22,8 @@ void Parser::ReadInputFile()
     parse_gcode_file(INPUT_GCODE,_ListeGcode, 0, 0, 0, 0);
     _ListeGcode.append(new FinProgramme());   
     absolute_relative();
+    diviselignes(PAS_SEGMENTATION);
+    absolute_relative();
 }
 
 void Parser::compute_arc()
@@ -522,7 +524,7 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
 
     for(IT = _ListeGcode.begin(), Index = 0; IT != _ListeGcode.end(); IT++, Index++) //Boucle sur toute la liste de Gcode
     {
-        if(type_check(*IT) == "Figure")//Sifigure
+        if(type_check(*IT) == "Figure")//Si figure
         {
            if(TailleDepuisDerniereOccurrence >= distance_min) //Si avant une figure on peut insérer une macro
            {
@@ -570,6 +572,26 @@ void Parser::insert_macro_distance(QString FileNameMacro, float distance_min, fl
                     insert_macro_at("Distance",FileNameMacro, Index);
                     IT = std::next(_ListeGcode.begin(),Index);
                     TailleDepuisDerniereOccurrence = 0;
+                }
+            }
+        }
+    }
+}
+
+void Parser::insert_macro_traits(QString FileNameMacro,QString nb_traits){
+
+
+    int i = 0;
+
+    for(int j = 0; j<_ListeGcode.size(); j++) //Boucle sur toute la liste de Gcode
+    {
+        if(type_check(_ListeGcode[j]) == "Deplacement"){
+            if(dynamic_cast<G01 *>(_ListeGcode[j])){
+                i++;
+                if(nb_traits.toInt() == i){
+                    insert_macro_at("Trait",FileNameMacro, j);
+                    i=0;
+                    j++;
                 }
             }
         }
@@ -702,12 +724,17 @@ void Parser::AjoutMacros(){
              QStringList liste = ligne.split(" ");
              insert_macro_fin(liste[2]);
         }
+        else if(ligne.contains("Traits"))
+        {
+             QStringList liste = ligne.split(" ");
+             insert_macro_traits(liste[3],liste[2]);
+        }
         else if(ligne.contains("Scan3D"))
         {
              QStringList liste = ligne.split(" ");
              //segmentation
-             diviselignes(PAS_SEGMENTATION);
-             absolute_relative();
+             //diviselignes(PAS_SEGMENTATION);
+             //absolute_relative();
              //Modif axe Z
              scanDeltaZ(liste[2]);
         }
